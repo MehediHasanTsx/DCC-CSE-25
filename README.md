@@ -40,29 +40,29 @@ DCC-CSE-25/
 ├── LICENSE
 │
 ├── 1st-year/
-│ ├── programming-fundamentals/
-│ ├── discrete-mathematics/
-│ └── electrical-circuits/
+│   ├── programming-fundamentals/
+│   ├── discrete-mathematics/
+│   └── electrical-circuits/
 │
 ├── 2nd-year/
-│ ├── data-structures/
-│ ├── digital-logic-design/
-│ └── object-oriented-programming/
+│   ├── data-structures/
+│   ├── digital-logic-design/
+│   └── object-oriented-programming/
 │
 ├── 3rd-year/
-│ ├── database-systems/
-│ ├── operating-systems/
-│ └── computer-networks/
+│   ├── database-systems/
+│   ├── operating-systems/
+│   └── computer-networks/
 │
 ├── 4th-year/
-│ ├── artificial-intelligence/
-│ ├── machine-learning/
-│ └── final-year-project/
+│   ├── artificial-intelligence/
+│   ├── machine-learning/
+│   └── final-year-project/
 │
 └── resources/
-├── lab-manuals/
-├── notes/
-└── references/
+    ├── lab-manuals/
+    ├── notes/
+    └── references/
 
 
 ### Folder Guidelines
