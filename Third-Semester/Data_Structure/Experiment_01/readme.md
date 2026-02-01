@@ -1,0 +1,1 @@
+Write a program to find the maximum and minimum numbers from an array.
