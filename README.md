@@ -1,45 +1,39 @@
-# DCC-CSE-25
-Perfect. Here’s a **complete, professional, copy-paste-ready `README.md`** that includes *everything* we discussed and is suitable for a public academic repository.
+# DCC-CSE-25  
+Professional Honours CSE — Lab Experiments & Coursework
 
-You can paste this directly into your repo root as `README.md`.
-
----
-
-```markdown
-# DCC CSE 25 – Professional Honours Lab Projects
-
-📚 **Lab projects and coursework for Professional Honours in Computer Science & Engineering**  
-🎓 **25th Batch – Dhaka City College**
+📚 Academic lab projects and learning resources  
+🎓 25th Batch — Dhaka City College (National University, Bangladesh)
 
 ---
 
 ## 📖 About This Repository
 
-This repository is a collaborative academic archive created by students of **Professional Honours in CSE (25th Batch)** at **Dhaka City College**.  
-It contains lab projects, practical coursework, and learning resources organized by academic year and subject.
+This repository is a **collaborative academic archive** created by students of the  
+**Professional Honours in Computer Science & Engineering (CSE), 25th Batch** at **Dhaka City College**, under **National University, Bangladesh**.
 
-The goal is to:
-- Centralize lab work for easy access
-- Encourage collaborative learning
-- Maintain a professional academic record
-- Help current and future students learn responsibly
+It contains **lab experiments, coursework, and learning-oriented code projects** organized by academic year and subject, following a clear and maintainable structure.
+
+### Objectives
+- Centralize academic lab work in one place
+- Encourage responsible, collaborative learning
+- Maintain a clean academic record for the batch
+- Help current and future students understand core concepts through reference code
 
 ---
 
-## 🏫 Batch Information
+## 🏫 Academic Information
 
-- **Program:** Professional Honours in Computer Science & Engineering  
+- **Program:** Professional Honours in Computer Science & Engineering (CSE)  
 - **Batch:** 25th  
 - **Institution:** Dhaka City College  
+- **University:** National University, Bangladesh  
 - **Location:** Dhaka, Bangladesh  
 
 ---
 
 ## 🗂 Repository Structure
 
-```
-
-dcc-cse-25-professional-honours-labs/
+DCC-CSE-25/
 │
 ├── README.md
 ├── CONTRIBUTING.md
@@ -66,40 +60,46 @@ dcc-cse-25-professional-honours-labs/
 │   └── final-year-project/
 │
 └── resources/
-├── lab-manuals/
-├── notes/
-└── references/
+    ├── lab-manuals/
+    ├── notes/
+    └── references/
 
-```
 
+### Folder Guidelines
 Each subject folder should include:
-- Source code
-- A short `README.md` explaining the lab/project
-- Proper comments and documentation
+- Source code files
+- A short `README.md` explaining the lab or project
+- Meaningful comments and clean formatting
+
+---
+
+## 🧠 Concepts & Skills Covered
+
+Depending on semester and coursework:
+- Programming fundamentals
+- Logic building and problem-solving
+- Data structures and basic algorithms
+- Object-oriented programming concepts
+- Database and system fundamentals
+- Computational thinking and code organization
 
 ---
 
 ## 🤝 Contribution Guidelines
 
-We **welcome contributions** from batch mates and authorized collaborators.
+Contributions are **welcome from batch mates and authorized collaborators**.
 
 ### How to Contribute
-1. Fork the repository
+1. Fork the repository  
 2. Create a new branch:
-```
-
-feature/subject-name
-
-```
-3. Add your files in the correct folder
+3. Add files to the correct folder  
 4. Ensure:
-- Clean code
-- Meaningful file names
-- Proper comments
+- Clean and readable code
+- Meaningful file and folder names
+- Proper comments where necessary  
 5. Submit a Pull Request (PR)
-6. Maintainers will review and merge
 
-📌 Please read `CONTRIBUTING.md` before submitting.
+📌 Please review `CONTRIBUTING.md` before submitting.
 
 ---
 
@@ -109,11 +109,11 @@ feature/subject-name
 
 This repository is intended **strictly for learning, reference, and collaborative study purposes**.
 
-- ❌ Do NOT submit this work directly as academic assignments
+- ❌ Do NOT submit this code directly as academic assignments
 - ❌ Do NOT upload exam questions or answers
 - ❌ No plagiarized or copied content
 
-All contributors are expected to follow **Dhaka City College academic integrity rules**.
+All contributors must follow **Dhaka City College and National University academic integrity policies**.
 
 ---
 
@@ -122,20 +122,20 @@ All contributors are expected to follow **Dhaka City College academic integrity 
 - Use **English** for documentation and comments
 - Follow the existing folder structure
 - Do not modify or delete others’ work without discussion
-- No inappropriate or irrelevant content
-- Respect academic and professional ethics
+- No irrelevant or inappropriate content
+- Maintain academic and professional ethics
 
-Failure to follow these rules may result in removal of contributions.
+Violations may result in removal of contributions.
 
 ---
 
 ## 🛠 Maintainers
 
-This repository is maintained by students of **CSE 25th Batch, Dhaka City College**.
+Maintained by students of **CSE 25th Batch, Dhaka City College**.
 
-> Maintainers will review pull requests, manage issues, and ensure repository quality.
+> Maintainers review pull requests, manage issues, and ensure repository quality.
 
-*(Maintainer list can be added here later)*
+*(Maintainer list can be added later)*
 
 ---
 
@@ -146,11 +146,11 @@ You are free to use, modify, and share the content with proper attribution.
 
 ---
 
-## ⭐ Support the Project
+## ⭐ Support
 
 If this repository helps you:
 - Give it a ⭐
 - Share responsibly
-- Contribute clean and useful content
+- Contribute clean, useful content
 
 Let’s build something meaningful for our batch and beyond 🚀
