@@ -1,0 +1,31 @@
+.MODEL SMALL
+.STACK 100H
+.DATA
+NUM DB 160
+EVENMSG DB 'Number is Even$'
+ODDMSG  DB 'Number is Odd$'
+
+.CODE
+MEHEDI PROC
+    MOV AX, @DATA
+    MOV DS, AX
+
+    MOV AL, NUM
+    AND AL, 01H
+    JZ EVEN
+
+    LEA DX, ODDMSG
+    MOV AH, 09H
+    INT 21H
+    JMP EXIT
+
+EVEN:
+    LEA DX, EVENMSG
+    MOV AH, 09H
+    INT 21H
+
+EXIT:
+    MOV AH, 4CH
+    INT 21H
+MEHEDI ENDP
+END MEHEDI
