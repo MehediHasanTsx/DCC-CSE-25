@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Microprocessor & Assembly Language Viva Questions and Answers</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --paper: #ffffff;
+      --text: #1f2937;
+      --muted: #5b6472;
+      --primary: #2457d6;
+      --primary-soft: #eaf0ff;
+      --border: #dbe3f0;
+      --code-bg: #0f172a;
+      --code-text: #e5ecff;
+      --accent: #0f766e;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #eef3ff 0%, var(--bg) 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    .hero {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 28px rgba(27, 43, 82, 0.08);
+      margin-bottom: 24px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .2px;
+      margin-bottom: 12px;
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 12px;
+      line-height: 1.25;
+    }
+
+    h1 { font-size: 34px; }
+    h2 {
+      font-size: 24px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+      margin-top: 36px;
+    }
+    h3 { font-size: 18px; color: var(--accent); margin-top: 22px; }
+
+    p { margin: 0 0 12px; }
+    .subtle { color: var(--muted); }
+
+    .toc, .card, .note {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 6px 18px rgba(27, 43, 82, 0.05);
+    }
+
+    .toc ul, .quick-points ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .toc li, .quick-points li { margin: 8px 0; }
+
+    .qa {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px 20px;
+      margin: 14px 0;
+      box-shadow: 0 6px 18px rgba(27, 43, 82, 0.05);
+    }
+
+    .question {
+      font-weight: 700;
+      color: #102449;
+      margin-bottom: 8px;
+    }
+
+    .answer {
+      color: var(--text);
+    }
+
+    code, pre {
+      font-family: Consolas, "Courier New", monospace;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 16px;
+      border-radius: 14px;
+      overflow-x: auto;
+      font-size: 14px;
+      margin: 12px 0 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 16px;
+      background: var(--paper);
+      overflow: hidden;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5ff;
+      color: #18336f;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .footer {
+      margin-top: 28px;
+      font-size: 14px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .highlight {
+      background: #fff8df;
+      border-left: 4px solid #f0b429;
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin: 12px 0;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+      .hero, .toc, .card, .qa, .note {
+        box-shadow: none;
+      }
+      .container {
+        max-width: 100%;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <div class="badge">Viva Preparation Notes</div>
+      <h1>Microprocessor &amp; Assembly Language Viva Questions and Answers</h1>
+      <p class="subtle">Basic to intermediate-level questions based on the topics and programs studied today in 8086 assembly language.</p>
+      <div class="highlight">
+        <strong>Covered topics:</strong> 8086 basics, registers, flags, segment:offset addressing, program structure, DOS interrupts, ASCII conversion, loops, conditional jumps, and array programs.
+      </div>
+    </section>
+
+    <section class="toc">
+      <h2>Contents</h2>
+      <ul>
+        <li>Basic Microprocessor Concepts</li>
+        <li>8086 Program Structure</li>
+        <li>Registers, Flags, and Addressing</li>
+        <li>Important DOS Interrupts</li>
+        <li>Assembly Programs Studied Today</li>
+        <li>Intermediate Viva Questions</li>
+        <li>Quick Revision Table</li>
+      </ul>
+    </section>
+
+    <h2>1) Basic Microprocessor Concepts</h2>
+
+    <div class="qa">
+      <div class="question">Q1. What is a microprocessor?</div>
+      <div class="answer">A microprocessor is a programmable electronic device that works as the central processing unit of a computer system. It performs arithmetic operations, logical operations, and controls data movement.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q2. Why is the 8086 microprocessor important for beginners?</div>
+      <div class="answer">The 8086 is important because it is one of the standard introductory microprocessors used to learn registers, flags, memory addressing, instruction execution, and basic assembly language programming.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q3. What is assembly language?</div>
+      <div class="answer">Assembly language is a low-level programming language that uses mnemonic instructions such as <code>MOV</code>, <code>ADD</code>, and <code>CMP</code> to control the CPU directly.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q4. Why do we learn assembly language?</div>
+      <div class="answer">We learn assembly language to understand how the CPU works internally, how memory is accessed, how registers store data, and how instructions are executed step by step.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q5. What is the difference between machine language and assembly language?</div>
+      <div class="answer">Machine language is written in binary and is directly understood by the CPU. Assembly language uses readable mnemonics, but it still represents low-level CPU instructions and must be converted into machine code by an assembler.</div>
+    </div>
+
+    <h2>2) 8086 Program Structure</h2>
+
+    <pre>.MODEL SMALL
+.STACK 100H
+.DATA
+.CODE
+MAIN PROC
+    ; instructions go here
+MAIN ENDP
+END MAIN</pre>
+
+    <div class="qa">
+      <div class="question">Q6. What does <code>.MODEL SMALL</code> mean?</div>
+      <div class="answer">It selects the small memory model, which means the program uses one code segment and one data segment.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q7. What is the purpose of <code>.STACK 100H</code>?</div>
+      <div class="answer">It reserves 100H bytes, or 256 bytes, for the stack. The stack is used for temporary storage, procedure calls, and saving register values.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q8. What is written inside the <code>.DATA</code> segment?</div>
+      <div class="answer">Variables, arrays, constants, and strings are declared in the <code>.DATA</code> segment.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q9. What is written inside the <code>.CODE</code> segment?</div>
+      <div class="answer">All executable instructions of the program are written in the <code>.CODE</code> segment.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q10. What is the purpose of <code>MAIN PROC</code> and <code>MAIN ENDP</code>?</div>
+      <div class="answer">These lines mark the beginning and ending of the main procedure. The actual instructions of the program are written between them.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q11. Why do we use <code>END MAIN</code>?</div>
+      <div class="answer">It tells the assembler where the program ends and from which procedure execution should begin.</div>
+    </div>
+
+    <h2>3) Registers, Flags, and Addressing</h2>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Common 8086 Registers</h3>
+        <p><strong>General purpose:</strong> AX, BX, CX, DX</p>
+        <p><strong>Pointer/index:</strong> SP, BP, SI, DI</p>
+        <p><strong>Segment:</strong> CS, DS, SS, ES</p>
+      </div>
+      <div class="card">
+        <h3>Why Registers Matter</h3>
+        <p>Registers are small storage locations inside the CPU. They are faster than memory and are heavily used in assembly instructions.</p>
+      </div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q12. What is the use of register AX?</div>
+      <div class="answer">AX is a 16-bit general-purpose register often used in arithmetic operations and many DOS interrupt functions.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q13. What are AH and AL?</div>
+      <div class="answer">AH is the high 8-bit part of AX and AL is the low 8-bit part of AX.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q14. Why do we write <code>MOV AX, @DATA</code> and <code>MOV DS, AX</code> at the start of many programs?</div>
+      <div class="answer">These instructions initialize the data segment register so the program can correctly access variables and strings declared in the <code>.DATA</code> segment.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q15. What is segment:offset addressing in 8086?</div>
+      <div class="answer">The 8086 uses a logical address written as <strong>segment:offset</strong>. The physical address is calculated by multiplying the segment by 10H and then adding the offset.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q16. What is the formula for physical address?</div>
+      <div class="answer"><strong>Physical Address = Segment × 10H + Offset</strong></div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q17. Find the physical address of 5462H:2DF9H.</div>
+      <div class="answer">5462H × 10H = 54620H, then 54620H + 2DF9H = <strong>57419H</strong>.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q18. Find the physical address of ABC7H:8472H.</div>
+      <div class="answer">ABC7H × 10H = ABC70H, then ABC70H + 8472H = <strong>B40E2H</strong>.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q19. What are flags in 8086?</div>
+      <div class="answer">Flags are status bits that show the result of an operation. Important flags include Carry Flag, Zero Flag, Sign Flag, Overflow Flag, Auxiliary Carry Flag, and Parity Flag.</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Flag</th>
+          <th>Meaning</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>CF</td>
+          <td>Carry Flag: set when there is a carry out in unsigned arithmetic.</td>
+        </tr>
+        <tr>
+          <td>ZF</td>
+          <td>Zero Flag: set when the result becomes zero.</td>
+        </tr>
+        <tr>
+          <td>SF</td>
+          <td>Sign Flag: copies the most significant bit of the result.</td>
+        </tr>
+        <tr>
+          <td>OF</td>
+          <td>Overflow Flag: set when signed overflow occurs.</td>
+        </tr>
+        <tr>
+          <td>AF</td>
+          <td>Auxiliary Carry Flag: set when there is a carry from bit 3 to bit 4.</td>
+        </tr>
+        <tr>
+          <td>PF</td>
+          <td>Parity Flag: set when the lower byte has even parity.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="qa">
+      <div class="question">Q20. Does the <code>MOV</code> instruction affect flags?</div>
+      <div class="answer">No. <code>MOV</code> only transfers data and does not change the flags.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q21. Which instruction is commonly used to compare two values?</div>
+      <div class="answer"><code>CMP</code> is used to compare two values. It subtracts internally and updates the flags, but it does not store the result.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q22. What do <code>JZ</code> and <code>JNE</code> mean?</div>
+      <div class="answer"><code>JZ</code> means jump if zero, and <code>JNE</code> means jump if not equal. Both use the flag results set by previous instructions.</div>
+    </div>
+
+    <h2>4) Important DOS Interrupts Used Today</h2>
+
+    <div class="qa">
+      <div class="question">Q23. What is the function of <code>INT 21H</code>?</div>
+      <div class="answer">It is a DOS interrupt used to perform input/output and program control functions such as reading a character, displaying a character, displaying a string, and terminating a program.</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>AH Value</th>
+          <th>Function</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>01H</td>
+          <td>Read one character from keyboard</td>
+        </tr>
+        <tr>
+          <td>02H</td>
+          <td>Display one character stored in DL</td>
+        </tr>
+        <tr>
+          <td>09H</td>
+          <td>Display a string ending with $</td>
+        </tr>
+        <tr>
+          <td>4CH</td>
+          <td>Terminate the program</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="qa">
+      <div class="question">Q24. Why does a string end with <code>$</code> in DOS function 09H?</div>
+      <div class="answer">DOS function 09H keeps printing characters until it finds the <code>$</code> symbol, so it is used as the string terminator.</div>
+    </div>
+
+    <h2>5) Assembly Programs Studied Today</h2>
+
+    <h3>A) Hello World Program</h3>
+    <pre>.MODEL SMALL
+.STACK 100H
+.DATA
+MSG DB 'Hello World$'
+.CODE
+MAIN PROC
+    MOV AX, @DATA
+    MOV DS, AX
+    LEA DX, MSG
+    MOV AH, 09H
+    INT 21H
+    MOV AH, 4CH
+    INT 21H
+MAIN ENDP
+END MAIN</pre>
+
+    <div class="qa">
+      <div class="question">Q25. How does the Hello World program work?</div>
+      <div class="answer">The message is stored in memory, its address is loaded into DX, AH is set to 09H, and INT 21H displays the string. Then AH is set to 4CH to terminate the program.</div>
+    </div>
+
+    <h3>B) Display A to Z</h3>
+    <pre>MOV DL, 'A'
+PRINT:
+    MOV AH, 02H
+    INT 21H
+    INC DL
+    CMP DL, 'Z' + 1
+    JNE PRINT</pre>
+
+    <div class="qa">
+      <div class="question">Q26. How does the alphabet display program work?</div>
+      <div class="answer">It starts with the ASCII value of A in DL, prints the character using INT 21H function 02H, increments DL to move to the next character, and repeats until it passes Z.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q27. Why is the label <code>PRINT:</code> used?</div>
+      <div class="answer">It acts as a loop point. The program jumps back to this label until all letters are displayed.</div>
+    </div>
+
+    <h3>C) Odd or Even Program</h3>
+    <pre>MOV AL, NUM
+AND AL, 01H
+JZ EVEN</pre>
+
+    <div class="qa">
+      <div class="question">Q28. How do we check whether a number is odd or even?</div>
+      <div class="answer">We check the least significant bit. If the last bit is 0, the number is even. If the last bit is 1, the number is odd.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q29. Why is <code>AND AL, 01H</code> used in the odd-even program?</div>
+      <div class="answer">It isolates the last bit of the number. The result becomes 0 for even numbers and 1 for odd numbers.</div>
+    </div>
+
+    <h3>D) Read Capital Letter and Display Small Letter</h3>
+    <pre>MOV AH, 01H
+INT 21H
+ADD AL, 20H
+MOV DL, AL
+MOV AH, 02H
+INT 21H</pre>
+
+    <div class="qa">
+      <div class="question">Q30. Why does adding 20H convert a capital letter into a small letter?</div>
+      <div class="answer">In ASCII, the difference between an uppercase letter and its lowercase form is 20H. For example, A = 41H and a = 61H.</div>
+    </div>
+
+    <h3>E) Read Small Letter and Display Capital Letter</h3>
+    <pre>MOV AH, 01H
+INT 21H
+SUB AL, 20H
+MOV BL, AL
+MOV DL, ' '
+MOV AH, 02H
+INT 21H
+MOV DL, BL
+MOV AH, 02H
+INT 21H</pre>
+
+    <div class="qa">
+      <div class="question">Q31. Why is 20H subtracted to convert a small letter into a capital letter?</div>
+      <div class="answer">In ASCII, lowercase letters are 20H greater than uppercase letters, so subtracting 20H converts a lowercase letter into uppercase.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q32. Why was the converted character saved in BL before printing a space?</div>
+      <div class="answer">Because the interrupt used for printing can affect registers. Saving the converted character in BL protects the value before printing the space.</div>
+    </div>
+
+    <h3>F) Find Largest Element in an Array</h3>
+    <pre>LEA SI, ARR
+MOV CL, COUNT
+MOV AL, [SI]
+INC SI
+DEC CL
+CHECK:
+    CMP AL, [SI]
+    JAE SKIP
+    MOV AL, [SI]
+SKIP:
+    INC SI
+    DEC CL
+    JNZ CHECK</pre>
+
+    <div class="qa">
+      <div class="question">Q33. What is the logic for finding the largest element in an array?</div>
+      <div class="answer">Take the first element as the initial largest value, compare it with each remaining element, and update it whenever a larger element is found.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q34. Why is SI used in the array program?</div>
+      <div class="answer">SI is used as an index register to point to array elements one by one.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q35. What does <code>JAE</code> mean in the largest-element program?</div>
+      <div class="answer"><code>JAE</code> means Jump if Above or Equal. If the current largest value is already greater than or equal to the next element, the program skips updating it.</div>
+    </div>
+
+    <h3>G) Find Smallest Element in an Array</h3>
+    <pre>LEA SI, ARR
+MOV CL, COUNT
+MOV AL, [SI]
+INC SI
+DEC CL
+CHECK:
+    CMP AL, [SI]
+    JBE SKIP
+    MOV AL, [SI]
+SKIP:
+    INC SI
+    DEC CL
+    JNZ CHECK</pre>
+
+    <div class="qa">
+      <div class="question">Q36. What is the logic for finding the smallest element in an array?</div>
+      <div class="answer">Take the first element as the initial smallest value, compare it with the rest of the elements, and update it whenever a smaller element is found.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q37. What does <code>JBE</code> mean in the smallest-element program?</div>
+      <div class="answer"><code>JBE</code> means Jump if Below or Equal. If the current smallest value is already less than or equal to the next element, the program keeps it unchanged.</div>
+    </div>
+
+    <h2>6) Intermediate Viva Questions</h2>
+
+    <div class="qa">
+      <div class="question">Q38. Why is ASCII knowledge important in letter conversion programs?</div>
+      <div class="answer">ASCII assigns numeric codes to characters. Understanding ASCII allows us to convert uppercase to lowercase and lowercase to uppercase using arithmetic operations like ADD and SUB.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q39. What is the difference between <code>LEA DX, MSG</code> and <code>MOV DX, MSG</code> in string programs?</div>
+      <div class="answer"><code>LEA DX, MSG</code> loads the effective address of the string into DX, which is needed for INT 21H function 09H. It is used when the interrupt expects an address, not the data itself.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q40. Why do we use loop logic with labels and jumps in assembly instead of high-level keywords?</div>
+      <div class="answer">Assembly language works at a lower level, so repetition is controlled manually using labels and jump instructions instead of keywords like for or while.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q41. What happens if the program does not use AH = 4CH and INT 21H at the end?</div>
+      <div class="answer">The program may not terminate properly under DOS. AH = 4CH with INT 21H is the standard method to exit a program safely.</div>
+    </div>
+
+    <div class="qa">
+      <div class="question">Q42. Which instructions studied today do not directly print anything but prepare values for output?</div>
+      <div class="answer">Instructions like MOV, ADD, SUB, CMP, AND, LEA, and INC prepare or modify values. The actual printing is done using INT 21H functions such as 02H or 09H.</div>
+    </div>
+
+    <h2>7) Quick Revision Table</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Topic</th>
+          <th>Key Point</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Program Structure</td>
+          <td>.MODEL, .STACK, .DATA, .CODE, PROC, ENDP, END</td>
+        </tr>
+        <tr>
+          <td>Data Segment</td>
+          <td>Initialize using MOV AX, @DATA and MOV DS, AX</td>
+        </tr>
+        <tr>
+          <td>Read Character</td>
+          <td>AH = 01H, INT 21H</td>
+        </tr>
+        <tr>
+          <td>Display Character</td>
+          <td>AH = 02H, DL = character, INT 21H</td>
+        </tr>
+        <tr>
+          <td>Display String</td>
+          <td>AH = 09H, DX = address of string ending with $</td>
+        </tr>
+        <tr>
+          <td>Terminate Program</td>
+          <td>AH = 4CH, INT 21H</td>
+        </tr>
+        <tr>
+          <td>Odd/Even Check</td>
+          <td>AND number with 01H</td>
+        </tr>
+        <tr>
+          <td>Capital to Small</td>
+          <td>Add 20H</td>
+        </tr>
+        <tr>
+          <td>Small to Capital</td>
+          <td>Subtract 20H</td>
+        </tr>
+        <tr>
+          <td>Largest/Smallest in Array</td>
+          <td>Compare each element and update current result</td>
+        </tr>
+        <tr>
+          <td>Physical Address</td>
+          <td>Segment × 10H + Offset</td>
+        </tr>
+        <tr>
+          <td>MOV Instruction</td>
+          <td>Transfers data, does not affect flags</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <section class="note quick-points">
+      <h2>Final Preparation Tips</h2>
+      <ul>
+        <li>Practice explaining each program line by line in simple language.</li>
+        <li>Remember the purpose of AH values used with INT 21H.</li>
+        <li>Revise ASCII differences between capital and small letters.</li>
+        <li>Be ready to explain why DS must be initialized.</li>
+        <li>Understand the logic of array comparison programs clearly.</li>
+      </ul>
+    </section>
+
+    <div class="footer">
+      Prepared as a clear, easy-to-read HTML viva note on microprocessor and assembly language topics studied today.
+    </div>
+  </div>
+</body>
+</html>
