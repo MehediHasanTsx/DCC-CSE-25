@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assembly Language Basics</title>
+</head>
+
+<body>
+
+    <p>
+        Here is a simple **basic note on Assembly Language** that you can save and read later:
+
+        ---
+
+        # Basic Information About Assembly Language
+
+        ## What is Assembly Language?
+
+        Assembly language is a **low-level programming language** used to communicate directly with the computer’s
+        processor (CPU).
+        It is very close to machine language, but easier for humans to read and write.
+
+        Each assembly instruction tells the CPU to perform a small task, such as:
+
+        * move data
+        * add numbers
+        * compare values
+        * jump to another instruction
+        * read or write memory
+
+        Example:
+
+        ```asm
+        MOV AX, 5
+        ADD AX, 3
+        ```
+
+        This means:
+
+        * store 5 in register `AX`
+        * add 3 to `AX`
+
+        Result: `AX = 8`
+
+        ---
+
+        ## Why Learn Assembly Language?
+
+        Assembly language helps you understand:
+
+        * how a CPU works
+        * how memory is used
+        * how data moves inside a computer
+        * how programs work at a low level
+
+        It is useful for:
+
+        * computer architecture
+        * microprocessors
+        * embedded systems
+        * operating systems
+        * debugging and reverse engineering
+
+        ---
+
+        ## Important Concepts
+
+        ### 1. Registers
+
+        Registers are small storage locations inside the CPU.
+        They hold data temporarily during execution.
+
+        In **8086**, common registers are:
+
+        * `AX`, `BX`, `CX`, `DX`
+        * `SP`, `BP`, `SI`, `DI`
+        * segment registers: `CS`, `DS`, `SS`, `ES`
+
+        Example:
+
+        ```asm
+        MOV AX, 1234H
+        ```
+
+        ---
+
+        ### 2. Data Formats
+
+        Assembly often uses:
+
+        * **Decimal** numbers
+        * **Binary** numbers
+        * **Hexadecimal** numbers
+
+        Example:
+
+        * Decimal `10` = Hex `0AH`
+        * Decimal `255` = Hex `FFH`
+
+        ---
+
+        ### 3. Instructions
+
+        Instructions are commands given to the CPU.
+
+        Common instructions:
+
+        * `MOV` → transfer data
+        * `ADD` → add
+        * `SUB` → subtract
+        * `INC` → increase by 1
+        * `DEC` → decrease by 1
+        * `CMP` → compare
+        * `JMP` → unconditional jump
+
+        Example:
+
+        ```asm
+        MOV AX, 2
+        ADD AX, 4
+        ```
+
+        ---
+
+        ### 4. Flags
+
+        Flags are bits in the flag register that show the result of an operation.
+
+        Important flags:
+
+        * `CF` → Carry Flag
+        * `ZF` → Zero Flag
+        * `SF` → Sign Flag
+        * `OF` → Overflow Flag
+        * `PF` → Parity Flag
+        * `AF` → Auxiliary Carry Flag
+
+        Example:
+        If result becomes zero, then:
+
+        * `ZF = 1`
+
+        ---
+
+        ### 5. Memory
+
+        Assembly can work with:
+
+        * immediate values
+        * registers
+        * memory locations
+
+        Example:
+
+        ```asm
+        MOV AX, 1234H
+        MOV BX, AX
+        MOV AX, [2000H]
+        ```
+
+        ---
+
+        ### 6. Segment:Offset Addressing in 8086
+
+        8086 uses **logical address = segment : offset**
+
+        Formula:
+        **Physical Address = Segment × 10H + Offset**
+
+        Example:
+        `1234H:5678H`
+
+        Physical address:
+        `12340H + 5678H = 179B8H`
+
+        ---
+
+        ## Types of Assembly Language Learning
+
+        When starting, learn these topics first:
+
+        1. Number systems
+        2. Registers
+        3. Basic instructions
+        4. Flags
+        5. Memory addressing
+        6. Loops and jumps
+        7. Stack and procedures
+
+        ---
+
+        ## Example of a Small Program
+
+        ```asm
+        MOV AX, 5
+        MOV BX, 3
+        ADD AX, BX
+        ```
+
+        Explanation:
+
+        * `AX = 5`
+        * `BX = 3`
+        * `AX = AX + BX`
+
+        Final result:
+
+        * `AX = 8`
+
+        ---
+
+        ## Advantages of Assembly Language
+
+        * very fast execution
+        * direct hardware control
+        * efficient memory usage
+        * helps understand internal computer operations
+
+        ---
+
+        ## Disadvantages of Assembly Language
+
+        * difficult for beginners
+        * long and detailed coding
+        * hard to debug for large programs
+        * machine dependent
+
+        ---
+
+        ## Best Way to Learn
+
+        * learn one concept at a time
+        * practice small programs
+        * trace register values step by step
+        * understand flags after each operation
+        * solve dry-run problems regularly
+
+        ---
+
+        ## Short Summary
+
+        Assembly language is a low-level language used to control the CPU directly.
+        It uses registers, memory, instructions, and flags to perform operations.
+        For beginners, 8086 assembly is a good starting point because it teaches the core concepts clearly.
+
+        ---
+
+        I can also turn this into **exam-style short notes** if you want.
+
+    </p>
+
+</body>
+
+</html>
