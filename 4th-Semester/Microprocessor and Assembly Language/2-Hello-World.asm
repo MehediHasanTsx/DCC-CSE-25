@@ -1,18 +1,18 @@
-.MODEL SMALL
-.STACK 100H
-.DATA
-MSG DB 'Hello World$'
+.model small
+.stack 100h
+.data
+msg db 'Hello World$'
 
-.CODE
-MAIN PROC
-    MOV AX, @DATA
-    MOV DS, AX
+.code
+main proc
+    mov ax, @data
+    mov ds, ax
 
-    LEA DX, MSG
-    MOV AH, 09H
-    INT 21H
+    lea dx, msg
+    mov ah, 09h
+    int 21h
 
-    MOV AH, 4CH
-    INT 21H
-MAIN ENDP
-END MAIN
+    mov ah, 4ch
+    int 21h
+main endp
+end main
