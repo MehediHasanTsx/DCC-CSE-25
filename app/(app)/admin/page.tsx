@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/auth-provider';
 import { mainDataService } from '@/lib/services/main-data.service';
-import type { Subject, RoutineSlot, Exam, Assignment, AssignmentPriority, DayOfWeek, SubjectType, ExamRoutineItem, LabGroup, SeatPlanRange, ExamType } from '@/types/database';
-import { DAYS_OF_WEEK, DAY_LABELS, SEMESTER_COUNT, DEFAULT_LAB_GROUPS, DEFAULT_5TH_SEMESTER_EXAM_ROUTINE } from '@/lib/constants';
+import type { Subject, RoutineSlot, Assignment, AssignmentPriority, DayOfWeek, SubjectType, ExamRoutineItem, LabGroup, SectionConfig, SeatPlanRange, ExamType } from '@/types/database';
+import { DAYS_OF_WEEK, DAY_LABELS, SEMESTER_COUNT, DEFAULT_LAB_GROUPS, DEFAULT_SECTIONS, DEFAULT_5TH_SEMESTER_EXAM_ROUTINE } from '@/lib/constants';
 import { formatTime, generateId } from '@/lib/utils/formatters';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -30,7 +30,6 @@ import {
   BookOpen,
   ClipboardList,
   Calendar,
-  GraduationCap,
   Clock,
   Loader2,
   Users,
@@ -43,6 +42,7 @@ import {
   AlertTriangle,
   Info,
   Sparkles,
+  LayoutGrid,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -67,9 +67,9 @@ export default function AdminPage() {
   // In-memory main data state being managed
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [routine, setRoutine] = useState<RoutineSlot[]>([]);
-  const [exams, setExams] = useState<Exam[]>([]);
-  const [examRoutines, setExamRoutines] = useState<ExamRoutineItem[]>([]);
+  const [sections, setSections] = useState<SectionConfig[]>(DEFAULT_SECTIONS);
   const [labGroups, setLabGroups] = useState<LabGroup[]>(DEFAULT_LAB_GROUPS);
+  const [examRoutines, setExamRoutines] = useState<ExamRoutineItem[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
 
   // Active Tab
@@ -90,20 +90,20 @@ export default function AdminPage() {
   const [editingRoutine, setEditingRoutine] = useState<RoutineSlot | null>(null);
   const [routineDefaultDay, setRoutineDefaultDay] = useState<DayOfWeek>('sunday');
 
+  const [sectionDialogOpen, setSectionDialogOpen] = useState(false);
+  const [editingSection, setEditingSection] = useState<SectionConfig | null>(null);
+
   const [labGroupDialogOpen, setLabGroupDialogOpen] = useState(false);
   const [editingLabGroup, setEditingLabGroup] = useState<LabGroup | null>(null);
 
   const [examRoutineDialogOpen, setExamRoutineDialogOpen] = useState(false);
   const [editingExamRoutine, setEditingExamRoutine] = useState<ExamRoutineItem | null>(null);
 
-  const [examDialogOpen, setExamDialogOpen] = useState(false);
-  const [editingExam, setEditingExam] = useState<Exam | null>(null);
-
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<{
-    type: 'subject' | 'routine' | 'labGroup' | 'examRoutine' | 'exam' | 'assignment';
+    type: 'subject' | 'routine' | 'section' | 'labGroup' | 'examRoutine' | 'assignment';
     id: string;
     name: string;
   } | null>(null);
@@ -115,10 +115,10 @@ export default function AdminPage() {
       const data = await mainDataService.fetchMainData(semId);
       setSubjects(data.subjects || []);
       setRoutine(data.routine || []);
-      setExams(data.exams || []);
+      setSections(data.sections && data.sections.length > 0 ? data.sections : (semId === 'semester-5' ? DEFAULT_SECTIONS : []));
+      setLabGroups(data.labGroups && data.labGroups.length > 0 ? data.labGroups : (semId === 'semester-5' ? DEFAULT_LAB_GROUPS : []));
       setAssignments(data.assignments || []);
       setExamRoutines(data.examRoutines || (semId === 'semester-5' ? DEFAULT_5TH_SEMESTER_EXAM_ROUTINE : []));
-      setLabGroups(data.labGroups && data.labGroups.length > 0 ? data.labGroups : (semId === 'semester-5' ? DEFAULT_LAB_GROUPS : []));
       setLastPublished(data.updatedAt ? new Date(data.updatedAt).toLocaleString() : null);
       setIsDraftDirty(false);
     } catch (err) {
@@ -147,10 +147,10 @@ export default function AdminPage() {
       const result = await mainDataService.publishMainData(semesterId, {
         subjects,
         routine,
-        exams,
+        sections,
+        labGroups,
         assignments,
         examRoutines,
-        labGroups,
       });
       setLastPublished(new Date(result.updatedAt).toLocaleString());
       setIsDraftDirty(false);
@@ -170,9 +170,9 @@ export default function AdminPage() {
       exportedAt: new Date().toISOString(),
       subjects,
       routine,
+      sections,
       labGroups,
       examRoutines,
-      exams,
       assignments,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -257,6 +257,32 @@ export default function AdminPage() {
     setEditingRoutine(null);
   };
 
+  // ── Section Operations ───────────────────────────────────
+  const handleSaveSection = (sectionData: SectionConfig) => {
+    if (editingSection) {
+      setSections((prev) =>
+        prev.map((s) => (s.section === editingSection.section ? sectionData : s))
+      );
+      toast.success(`Section ${sectionData.section} updated in draft.`);
+    } else {
+      if (sections.some((s) => s.section.toUpperCase() === sectionData.section.toUpperCase())) {
+        toast.error(`Section '${sectionData.section}' already exists.`);
+        return;
+      }
+      setSections((prev) => [...prev, sectionData].sort((a, b) => a.rollStart - b.rollStart));
+      toast.success(`Section ${sectionData.section} added to draft.`);
+    }
+    setIsDraftDirty(true);
+    setSectionDialogOpen(false);
+    setEditingSection(null);
+  };
+
+  const handleResetSectionsDefault = () => {
+    setSections(DEFAULT_SECTIONS);
+    setIsDraftDirty(true);
+    toast.success('Reset sections to standard defaults (Section A: 2–88, Section B: 89–193).');
+  };
+
   // ── Lab Group Operations ─────────────────────────────────
   const handleSaveLabGroup = (groupData: LabGroup) => {
     if (editingLabGroup) {
@@ -307,35 +333,6 @@ export default function AdminPage() {
     setEditingExamRoutine(null);
   };
 
-  // ── Exam Operations ─────────────────────────────────────
-  const handleSaveExam = (examData: Partial<Exam>) => {
-    const now = new Date();
-    if (editingExam) {
-      setExams((prev) =>
-        prev.map((e) => (e.id === editingExam.id ? ({ ...e, ...examData, updatedAt: now } as Exam) : e))
-      );
-      toast.success('Exam updated in draft.');
-    } else {
-      const newExam: Exam = {
-        id: generateId(),
-        semesterId,
-        subjectId: examData.subjectId || '',
-        name: examData.name || '',
-        date: examData.date || new Date().toISOString().split('T')[0],
-        time: examData.time,
-        room: examData.room,
-        notes: examData.notes,
-        createdAt: now,
-        updatedAt: now,
-      };
-      setExams((prev) => [...prev, newExam]);
-      toast.success('Exam added to draft.');
-    }
-    setIsDraftDirty(true);
-    setExamDialogOpen(false);
-    setEditingExam(null);
-  };
-
   // ── Assignment Operations ────────────────────────────────
   const handleSaveAssignment = (assData: Partial<Assignment>) => {
     const now = new Date();
@@ -375,15 +372,15 @@ export default function AdminPage() {
     } else if (deleteTarget.type === 'routine') {
       setRoutine((prev) => prev.filter((r) => r.id !== deleteTarget.id));
       toast.success('Routine slot removed from draft.');
+    } else if (deleteTarget.type === 'section') {
+      setSections((prev) => prev.filter((s) => s.section !== deleteTarget.id));
+      toast.success('Section removed from draft.');
     } else if (deleteTarget.type === 'labGroup') {
       setLabGroups((prev) => prev.filter((g) => g.group !== deleteTarget.id));
       toast.success('Lab group removed from draft.');
     } else if (deleteTarget.type === 'examRoutine') {
       setExamRoutines((prev) => prev.filter((r) => r.id !== deleteTarget.id));
       toast.success('Exam routine slot removed from draft.');
-    } else if (deleteTarget.type === 'exam') {
-      setExams((prev) => prev.filter((e) => e.id !== deleteTarget.id));
-      toast.success('Exam removed from draft.');
     } else if (deleteTarget.type === 'assignment') {
       setAssignments((prev) => prev.filter((a) => a.id !== deleteTarget.id));
       toast.success('Assignment removed from draft.');
@@ -407,6 +404,17 @@ export default function AdminPage() {
   }, [subjects]);
 
   const subjectMap = useMemo(() => new Map(subjects.map((s) => [s.id, s])), [subjects]);
+
+  // Check for section overlaps / gaps
+  const sectionOverlapWarning = useMemo(() => {
+    const sorted = [...sections].sort((a, b) => a.rollStart - b.rollStart);
+    for (let i = 0; i < sorted.length - 1; i++) {
+      if (sorted[i].rollEnd >= sorted[i + 1].rollStart) {
+        return `Roll overlap detected between Section ${sorted[i].section} (up to ${sorted[i].rollEnd}) and Section ${sorted[i + 1].section} (from ${sorted[i + 1].rollStart})`;
+      }
+    }
+    return null;
+  }, [sections]);
 
   // Check for lab group overlaps / gaps
   const groupOverlapWarning = useMemo(() => {
@@ -545,14 +553,14 @@ export default function AdminPage() {
           </div>
 
           <div
-            onClick={() => setActiveTab('labGroups')}
+            onClick={() => setActiveTab('sectionsAndGroups')}
             className="rounded-2xl border border-border/70 bg-card/60 hover:bg-card hover:border-primary/40 p-3.5 text-center transition-all cursor-pointer group shadow-2xs"
           >
             <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-center gap-1">
-              <Users className="h-3 w-3 text-primary" /> Lab Groups
+              <Users className="h-3 w-3 text-primary" /> Sections & Groups
             </p>
             <p className="text-xl font-bold text-foreground mt-1 group-hover:text-primary transition-colors">
-              {labGroups.length}
+              {sections.length} Sec · {labGroups.length} Grp
             </p>
             <span className="text-[10px] text-muted-foreground">Roll configured</span>
           </div>
@@ -562,17 +570,17 @@ export default function AdminPage() {
             className="rounded-2xl border border-border/70 bg-card/60 hover:bg-card hover:border-primary/40 p-3.5 text-center transition-all cursor-pointer group shadow-2xs"
           >
             <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-center gap-1">
-              <FileText className="h-3 w-3 text-primary" /> Exam Notices
+              <FileText className="h-3 w-3 text-primary" /> Exam Routine
             </p>
             <p className="text-xl font-bold text-foreground mt-1 group-hover:text-primary transition-colors">
               {examRoutines.length}
             </p>
-            <span className="text-[10px] text-muted-foreground">With seat plans</span>
+            <span className="text-[10px] text-muted-foreground">Schedules & Seat Plans</span>
           </div>
 
           <div
             onClick={() => setActiveTab('assignments')}
-            className="rounded-2xl border border-border/70 bg-card/60 hover:bg-card hover:border-primary/40 p-3.5 text-center transition-all cursor-pointer group shadow-2xs"
+            className="rounded-2xl border border-border/70 bg-card/60 hover:bg-card hover:border-primary/40 p-3.5 text-center col-span-2 sm:col-span-1 transition-all cursor-pointer group shadow-2xs"
           >
             <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-center gap-1">
               <ClipboardList className="h-3 w-3 text-primary" /> Assignments
@@ -581,19 +589,6 @@ export default function AdminPage() {
               {assignments.length}
             </p>
             <span className="text-[10px] text-muted-foreground">Published tasks</span>
-          </div>
-
-          <div
-            onClick={() => setActiveTab('exams')}
-            className="rounded-2xl border border-border/70 bg-card/60 hover:bg-card hover:border-primary/40 p-3.5 text-center col-span-2 sm:col-span-1 transition-all cursor-pointer group shadow-2xs"
-          >
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-center gap-1">
-              <GraduationCap className="h-3 w-3 text-primary" /> Calendar Exams
-            </p>
-            <p className="text-xl font-bold text-foreground mt-1 group-hover:text-primary transition-colors">
-              {exams.length}
-            </p>
-            <span className="text-[10px] text-muted-foreground">Student tracker</span>
           </div>
         </div>
       </div>
@@ -640,9 +635,9 @@ export default function AdminPage() {
               <Calendar className="h-4 w-4" />
               Routine ({routine.length})
             </TabsTrigger>
-            <TabsTrigger value="labGroups" className="text-xs px-4 py-2 gap-2 font-semibold rounded-xl shrink-0 transition-all data-active:bg-background data-active:text-foreground data-active:shadow-xs">
+            <TabsTrigger value="sectionsAndGroups" className="text-xs px-4 py-2 gap-2 font-semibold rounded-xl shrink-0 transition-all data-active:bg-background data-active:text-foreground data-active:shadow-xs">
               <Users className="h-4 w-4" />
-              Lab Groups ({labGroups.length})
+              Sections & Groups ({sections.length + labGroups.length})
             </TabsTrigger>
             <TabsTrigger value="examRoutine" className="text-xs px-4 py-2 gap-2 font-semibold rounded-xl shrink-0 transition-all data-active:bg-background data-active:text-foreground data-active:shadow-xs">
               <FileText className="h-4 w-4" />
@@ -651,10 +646,6 @@ export default function AdminPage() {
             <TabsTrigger value="assignments" className="text-xs px-4 py-2 gap-2 font-semibold rounded-xl shrink-0 transition-all data-active:bg-background data-active:text-foreground data-active:shadow-xs">
               <ClipboardList className="h-4 w-4" />
               Assignments ({assignments.length})
-            </TabsTrigger>
-            <TabsTrigger value="exams" className="text-xs px-4 py-2 gap-2 font-semibold rounded-xl shrink-0 transition-all data-active:bg-background data-active:text-foreground data-active:shadow-xs">
-              <GraduationCap className="h-4 w-4" />
-              Exams ({exams.length})
             </TabsTrigger>
           </TabsList>
         </div>
@@ -1016,9 +1007,161 @@ export default function AdminPage() {
         </TabsContent>
 
         {/* ═══════════════════════════════════════════════════════════════════════════
-            TAB 3: LAB GROUPS (Dynamic Roll Ranges)
+            TAB 3: SECTIONS & LAB GROUPS (Configurable Roll Ranges)
         ═══════════════════════════════════════════════════════════════════════════ */}
-        <TabsContent value="labGroups" className="space-y-4">
+        <TabsContent value="sectionsAndGroups" className="space-y-6">
+          {/* Card 1: Section Rolls Configuration */}
+          <Card className="rounded-2xl border-border/80 shadow-2xs">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
+              <div className="space-y-1">
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <LayoutGrid className="h-4 w-4 text-primary" />
+                  Define Section Rolls (A, B, etc.)
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Map student roll ranges to Academic Sections (e.g., Section A: 2–88, Section B: 89–193).
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs gap-1.5 rounded-lg shadow-xs"
+                  onClick={handleResetSectionsDefault}
+                  title="Reset to standard Section A & B defaults"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Reset Defaults
+                </Button>
+                <Button
+                  size="sm"
+                  className="h-8 text-xs gap-1.5 rounded-lg shadow-xs"
+                  onClick={() => {
+                    setEditingSection(null);
+                    setSectionDialogOpen(true);
+                  }}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add Section
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {/* Overlap alert if present */}
+              {sectionOverlapWarning && (
+                <div className="flex items-center gap-2 p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs font-medium">
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+                  <span>{sectionOverlapWarning}</span>
+                </div>
+              )}
+
+              {/* Graphical Roll Spectrum Distribution Bar for Sections */}
+              {sections.length > 0 && (
+                <div className="space-y-2 p-4 rounded-2xl bg-muted/40 border border-border/60">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-foreground flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-primary" /> Section Roll Distribution
+                    </span>
+                    <span className="text-muted-foreground text-[11px]">
+                      {sections.reduce((acc, s) => acc + (s.rollEnd - s.rollStart + 1), 0)} total students across sections
+                    </span>
+                  </div>
+
+                  {/* Spectrum Bar */}
+                  <div className="flex h-6 w-full rounded-xl overflow-hidden border border-border/60 bg-muted/80 p-0.5 gap-0.5">
+                    {sections.map((sec, idx) => {
+                      const colors = ['bg-indigo-500', 'bg-emerald-500', 'bg-cyan-500', 'bg-violet-500'];
+                      const count = Math.max(sec.rollEnd - sec.rollStart + 1, 1);
+                      return (
+                        <div
+                          key={sec.section}
+                          style={{ flex: count }}
+                          className={`${colors[idx % colors.length]} h-full rounded-lg flex items-center justify-center text-[10px] font-bold text-white shadow-2xs`}
+                          title={`Section ${sec.section}: Roll ${sec.rollStart} - ${sec.rollEnd} (${count} students)`}
+                        >
+                          Sec {sec.section} ({count})
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {sections.length === 0 ? (
+                <div className="py-10 text-center text-muted-foreground text-xs space-y-2">
+                  <LayoutGrid className="h-8 w-8 mx-auto opacity-30" />
+                  <p>No sections defined. Click &quot;Add Section&quot; or &quot;Reset Defaults&quot;.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  {sections.map((sec, idx) => {
+                    const badgeColors = [
+                      'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400',
+                      'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400',
+                      'bg-cyan-500/10 border-cyan-500/30 text-cyan-600 dark:text-cyan-400',
+                      'bg-violet-500/10 border-violet-500/30 text-violet-600 dark:text-violet-400',
+                    ];
+                    const colorStyle = badgeColors[idx % badgeColors.length];
+                    const totalStudents = sec.rollEnd - sec.rollStart + 1;
+
+                    return (
+                      <div
+                        key={sec.section}
+                        className="flex flex-col justify-between p-4 rounded-2xl border border-border/80 bg-card hover:bg-muted/30 transition-all space-y-3.5 shadow-2xs"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-3">
+                            <span className={`flex h-10 w-10 items-center justify-center rounded-xl font-bold text-base border ${colorStyle} shadow-2xs`}>
+                              {sec.section}
+                            </span>
+                            <div>
+                              <h4 className="font-bold text-sm text-foreground">{sec.label || `Section ${sec.section}`}</h4>
+                              <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                                Rolls: <strong className="text-foreground">{sec.rollStart}</strong> to <strong className="text-foreground">{sec.rollEnd}</strong>
+                              </p>
+                            </div>
+                          </div>
+                          <Badge variant="outline" className="text-[11px] font-mono px-2 py-0.5 font-semibold">
+                            {totalStudents} rolls
+                          </Badge>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-1.5 pt-2.5 border-t border-border/60">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 text-xs gap-1 rounded-lg text-muted-foreground hover:text-foreground"
+                            onClick={() => {
+                              setEditingSection(sec);
+                              setSectionDialogOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-3 w-3" /> Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 text-xs gap-1 rounded-lg text-muted-foreground hover:text-destructive"
+                            onClick={() =>
+                              setDeleteTarget({
+                                type: 'section',
+                                id: sec.section,
+                                name: `Section ${sec.section} (${sec.rollStart}–${sec.rollEnd})`,
+                              })
+                            }
+                          >
+                            <Trash2 className="h-3 w-3" /> Delete
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Card 2: Lab Groups Configuration */}
           <Card className="rounded-2xl border-border/80 shadow-2xs">
             <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
               <div className="space-y-1">
@@ -1027,7 +1170,7 @@ export default function AdminPage() {
                   Configurable Lab Groups & Roll Boundaries
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Define dynamic groups (P, Q, R, S, etc.) and roll number ranges. Student devices auto-assign their group.
+                  Define dynamic groups (P, Q, R, S, etc.) and roll ranges. Routine slots and student dashboards auto-map to their group.
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
@@ -1068,7 +1211,7 @@ export default function AdminPage() {
                 <div className="space-y-2 p-4 rounded-2xl bg-muted/40 border border-border/60">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-semibold text-foreground flex items-center gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5 text-primary" /> Roll Range Spectrum
+                      <Sparkles className="h-3.5 w-3.5 text-primary" /> Lab Group Spectrum
                     </span>
                     <span className="text-muted-foreground text-[11px]">
                       {labGroups.reduce((acc, g) => acc + (g.rollEnd - g.rollStart + 1), 0)} total students covered
@@ -1096,7 +1239,7 @@ export default function AdminPage() {
               )}
 
               {labGroups.length === 0 ? (
-                <div className="py-14 text-center text-muted-foreground text-xs space-y-2">
+                <div className="py-10 text-center text-muted-foreground text-xs space-y-2">
                   <Users className="h-8 w-8 mx-auto opacity-30" />
                   <p>No lab groups defined. Click &quot;Add Lab Group&quot; or &quot;Reset Defaults&quot;.</p>
                 </div>
@@ -1436,109 +1579,6 @@ export default function AdminPage() {
           </Card>
         </TabsContent>
 
-        {/* ═══════════════════════════════════════════════════════════════════════════
-            TAB 6: EXAMS (Calendar / Student Countdown)
-        ═══════════════════════════════════════════════════════════════════════════ */}
-        <TabsContent value="exams" className="space-y-4">
-          <Card className="rounded-2xl border-border/80 shadow-2xs">
-            <CardHeader className="flex flex-row items-center justify-between pb-4">
-              <div className="space-y-1">
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4 text-primary" />
-                  Shared Upcoming Exams & Deadlines
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Exams published here appear in students&apos; personal exam tracker and countdown widgets.
-                </CardDescription>
-              </div>
-              <Button
-                size="sm"
-                className="h-8 text-xs gap-1.5 rounded-lg shadow-xs"
-                onClick={() => {
-                  setEditingExam(null);
-                  setExamDialogOpen(true);
-                }}
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Add Exam
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {exams.length === 0 ? (
-                <div className="py-14 text-center text-muted-foreground text-xs space-y-2">
-                  <GraduationCap className="h-8 w-8 mx-auto opacity-30" />
-                  <p>No upcoming exams listed. Click &quot;Add Exam&quot; to publish one.</p>
-                </div>
-              ) : (
-                <div className="space-y-2.5">
-                  {exams.map((ex) => {
-                    const sub = subjectMap.get(ex.subjectId);
-                    return (
-                      <div
-                        key={ex.id}
-                        className="flex items-center justify-between p-3.5 rounded-xl border border-border/70 bg-card hover:bg-muted/30 transition-colors gap-3 group"
-                      >
-                        <div className="min-w-0 flex items-center gap-3">
-                          <div
-                            className="w-3 h-11 rounded-full shrink-0 shadow-2xs"
-                            style={{ backgroundColor: sub?.color || '#3B82F6' }}
-                          />
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="font-bold text-sm text-foreground truncate">{ex.name}</p>
-                              {sub && (
-                                <Badge variant="outline" className="text-[10px] px-2 py-0.5 h-4.5 font-semibold">
-                                  {sub.name} ({sub.code})
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
-                              <span className="inline-flex items-center gap-1 font-medium text-foreground">
-                                <Calendar className="h-3 w-3 text-primary" /> {ex.date}
-                              </span>
-                              {ex.time && <span>• {ex.time}</span>}
-                              {ex.room && <span>• Room #{ex.room}</span>}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1 shrink-0">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                            onClick={() => {
-                              setEditingExam(ex);
-                              setExamDialogOpen(true);
-                            }}
-                            title="Edit Exam"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                            onClick={() =>
-                              setDeleteTarget({
-                                type: 'exam',
-                                id: ex.id,
-                                name: `${ex.name} (${ex.date})`,
-                              })
-                            }
-                            title="Delete Exam"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
 
       {/* ── Modals & Dialogs ── */}
@@ -1580,6 +1620,23 @@ export default function AdminPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Section Dialog */}
+      <Dialog open={sectionDialogOpen} onOpenChange={setSectionDialogOpen}>
+        <DialogContent className="sm:max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>{editingSection ? 'Edit Section' : 'Add Section'}</DialogTitle>
+            <DialogDescription>
+              Define academic section identifier and student roll range.
+            </DialogDescription>
+          </DialogHeader>
+          <SectionFormModal
+            sectionItem={editingSection}
+            onSubmit={handleSaveSection}
+            onCancel={() => setSectionDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
       {/* Lab Group Dialog */}
       <Dialog open={labGroupDialogOpen} onOpenChange={setLabGroupDialogOpen}>
         <DialogContent className="sm:max-w-md rounded-2xl">
@@ -1611,24 +1668,6 @@ export default function AdminPage() {
             subjects={subjects}
             onSubmit={handleSaveExamRoutine}
             onCancel={() => setExamRoutineDialogOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Exam Dialog */}
-      <Dialog open={examDialogOpen} onOpenChange={setExamDialogOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>{editingExam ? 'Edit Exam' : 'Add Exam'}</DialogTitle>
-            <DialogDescription>
-              Publish an upcoming exam date to the students&apos; calendar.
-            </DialogDescription>
-          </DialogHeader>
-          <ExamFormModal
-            exam={editingExam}
-            subjects={subjects}
-            onSubmit={handleSaveExam}
-            onCancel={() => setExamDialogOpen(false)}
           />
         </DialogContent>
       </Dialog>
@@ -1974,6 +2013,99 @@ function LabGroupFormModal({
   );
 }
 
+function SectionFormModal({
+  sectionItem,
+  onSubmit,
+  onCancel,
+}: {
+  sectionItem: SectionConfig | null;
+  onSubmit: (data: SectionConfig) => void;
+  onCancel: () => void;
+}) {
+  const [sectionKey, setSectionKey] = useState(sectionItem?.section || 'A');
+  const [rollStart, setRollStart] = useState(sectionItem?.rollStart?.toString() || '2');
+  const [rollEnd, setRollEnd] = useState(sectionItem?.rollEnd?.toString() || '88');
+  const [label, setLabel] = useState(sectionItem?.label || '');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanKey = sectionKey.trim().toUpperCase();
+    const start = parseInt(rollStart, 10);
+    const end = parseInt(rollEnd, 10);
+
+    if (!cleanKey) return toast.error('Section identifier is required.');
+    if (isNaN(start) || isNaN(end) || start > end) {
+      return toast.error('Please enter a valid roll range (Start Roll <= End Roll).');
+    }
+
+    const autoLabel = label.trim() || `Section ${cleanKey} (Roll ${start}–${end})`;
+
+    onSubmit({
+      section: cleanKey,
+      rollStart: start,
+      rollEnd: end,
+      label: autoLabel,
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+      <div className="space-y-1.5">
+        <Label>Section Identifier *</Label>
+        <Input
+          value={sectionKey}
+          onChange={(e) => setSectionKey(e.target.value)}
+          placeholder="e.g. A, B, C"
+          maxLength={4}
+          className="rounded-lg text-xs uppercase font-bold"
+          required
+        />
+        <p className="text-[11px] text-muted-foreground">Short section code (e.g. A, B, or C1, D2).</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Roll Start *</Label>
+          <Input
+            type="number"
+            value={rollStart}
+            onChange={(e) => setRollStart(e.target.value)}
+            placeholder="e.g. 2"
+            className="rounded-lg text-xs"
+            required
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Roll End *</Label>
+          <Input
+            type="number"
+            value={rollEnd}
+            onChange={(e) => setRollEnd(e.target.value)}
+            placeholder="e.g. 88"
+            className="rounded-lg text-xs"
+            required
+          />
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Display Label (Optional)</Label>
+        <Input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          placeholder={`e.g. Section ${sectionKey.toUpperCase()} (Roll ${rollStart}–${rollEnd})`}
+          className="rounded-lg text-xs"
+        />
+      </div>
+
+      <DialogFooter className="pt-2">
+        <Button type="button" variant="ghost" onClick={onCancel} className="rounded-lg">Cancel</Button>
+        <Button type="submit" className="rounded-lg">{sectionItem ? 'Update Section' : 'Add Section'}</Button>
+      </DialogFooter>
+    </form>
+  );
+}
+
 function ExamRoutineFormModal({
   routine,
   subjects,
@@ -2194,83 +2326,6 @@ function ExamRoutineFormModal({
       <DialogFooter className="pt-2">
         <Button type="button" variant="ghost" onClick={onCancel} className="rounded-lg">Cancel</Button>
         <Button type="submit" className="rounded-lg">{routine ? 'Update Exam Notice' : 'Publish Notice'}</Button>
-      </DialogFooter>
-    </form>
-  );
-}
-
-function ExamFormModal({
-  exam,
-  subjects,
-  onSubmit,
-  onCancel,
-}: {
-  exam: Exam | null;
-  subjects: Subject[];
-  onSubmit: (data: Partial<Exam>) => void;
-  onCancel: () => void;
-}) {
-  const [name, setName] = useState(exam?.name || 'Midterm Examination');
-  const [subjectId, setSubjectId] = useState(exam?.subjectId || subjects[0]?.id || '');
-  const [date, setDate] = useState(exam?.date || new Date().toISOString().split('T')[0]);
-  const [time, setTime] = useState(exam?.time || '10:00 AM');
-  const [room, setRoom] = useState(exam?.room || '641');
-  const [notes, setNotes] = useState(exam?.notes || '');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return toast.error('Exam title is required.');
-    if (!subjectId) return toast.error('Please select a subject.');
-    onSubmit({
-      name: name.trim(),
-      subjectId,
-      date,
-      time: time.trim() || undefined,
-      room: room.trim() || undefined,
-      notes: notes.trim() || undefined,
-    });
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-      <div className="space-y-1.5">
-        <Label>Exam Title *</Label>
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Midterm Examination" className="rounded-lg text-xs" required />
-      </div>
-      <div className="space-y-1.5">
-        <Label>Subject *</Label>
-        <Select value={subjectId} onValueChange={(v) => { if (v) setSubjectId(v); }}>
-          <SelectTrigger className="rounded-lg text-xs"><SelectValue placeholder="Select subject" /></SelectTrigger>
-          <SelectContent>
-            {subjects.map((s) => (
-              <SelectItem key={s.id} value={s.id}>
-                {s.name} ({s.code})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label>Date *</Label>
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="rounded-lg text-xs" required />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Time</Label>
-          <Input value={time} onChange={(e) => setTime(e.target.value)} placeholder="e.g. 10:00 AM" className="rounded-lg text-xs" />
-        </div>
-      </div>
-      <div className="space-y-1.5">
-        <Label>Room</Label>
-        <Input value={room} onChange={(e) => setRoom(e.target.value)} placeholder="e.g. 641" className="rounded-lg text-xs" />
-      </div>
-      <div className="space-y-1.5">
-        <Label>Notes / Syllabus</Label>
-        <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. Chapters 1-4" className="rounded-lg text-xs" />
-      </div>
-      <DialogFooter className="pt-2">
-        <Button type="button" variant="ghost" onClick={onCancel} className="rounded-lg">Cancel</Button>
-        <Button type="submit" className="rounded-lg">{exam ? 'Update Exam' : 'Add Exam'}</Button>
       </DialogFooter>
     </form>
   );

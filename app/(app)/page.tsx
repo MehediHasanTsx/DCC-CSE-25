@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useProfile } from '@/lib/hooks/useProfile';
 import { useAttendance } from '@/lib/hooks/useAttendance';
@@ -57,6 +57,27 @@ export default function DashboardPage() {
   const [feeSummary, setFeeSummary] = useState<FeeSummary | null>(null);
   const [quickAttendanceOpen, setQuickAttendanceOpen] = useState(false);
   const [markingSubjectId, setMarkingSubjectId] = useState<string | null>(null);
+  const [todayClassFilter, setTodayClassFilter] = useState<string>('all');
+
+  // Derive unique group values from today's classes for filter pills
+  const todayGroupOptions = useMemo(() => {
+    const groups = new Set<string>();
+    todayClasses.forEach((slot) => {
+      groups.add(slot.group || 'All');
+    });
+    return Array.from(groups).sort();
+  }, [todayClasses]);
+
+  // Filtered today classes based on selected group filter
+  const filteredTodayClasses = useMemo(() => {
+    if (todayClassFilter === 'all') return todayClasses;
+    return todayClasses.filter((slot) => {
+      const slotGroup = slot.group || 'All';
+      if (todayClassFilter === 'All') return slotGroup === 'All';
+      // Show both the selected group AND theory classes (group 'All')
+      return slotGroup === todayClassFilter || slotGroup === 'All';
+    });
+  }, [todayClasses, todayClassFilter]);
 
   useEffect(() => {
     if (!semesterId) return;
@@ -185,7 +206,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <CardTitle className="text-base">Today&apos;s Classes</CardTitle>
               <div className="flex items-center gap-1.5">
-                {todayClasses.some(
+                {filteredTodayClasses.some(
                   (slot) =>
                     !records.some(
                       (r) =>
@@ -199,7 +220,7 @@ export default function DashboardPage() {
                     className="text-xs h-7 gap-1 border-emerald-500/40 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
                     onClick={async () => {
                       const todayIso = new Date().toISOString().split('T')[0];
-                      const unmarked = todayClasses
+                      const unmarked = filteredTodayClasses
                         .filter(
                           (slot) =>
                             !records.some(
@@ -229,15 +250,50 @@ export default function DashboardPage() {
                 </Link>
               </div>
             </div>
+
+            {/* Section / Group Filter Pills */}
+            {todayGroupOptions.length > 1 && (
+              <div className="flex items-center gap-1.5 flex-wrap pt-2">
+                <button
+                  type="button"
+                  onClick={() => setTodayClassFilter('all')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors border ${
+                    todayClassFilter === 'all'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                      : 'bg-muted/50 text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground'
+                  }`}
+                >
+                  All ({todayClasses.length})
+                </button>
+                {todayGroupOptions.map((g) => {
+                  const count = todayClasses.filter((s) => (s.group || 'All') === g).length;
+                  const isTheory = g === 'All';
+                  return (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setTodayClassFilter(g)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors border ${
+                        todayClassFilter === g
+                          ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                          : 'bg-muted/50 text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground'
+                      }`}
+                    >
+                      {isTheory ? 'Theory' : `Group ${g}`} ({count})
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </CardHeader>
           <CardContent>
-            {todayClasses.length === 0 ? (
+            {filteredTodayClasses.length === 0 ? (
               <p className="text-sm text-muted-foreground py-4 text-center">
-                No classes scheduled for today.
+                {todayClasses.length === 0 ? 'No classes scheduled for today.' : 'No classes match this filter.'}
               </p>
             ) : (
               <div className="space-y-3">
-                {todayClasses.map((slot) => {
+                {filteredTodayClasses.map((slot) => {
                   const todayIso = new Date().toISOString().split('T')[0];
                   const att = records.find(
                     (r) => r.subjectId === slot.subjectId && r.date === todayIso
@@ -274,9 +330,15 @@ export default function DashboardPage() {
                           <p className="text-sm font-semibold truncate">
                             {slot.subject?.name || 'Unknown Subject'}
                           </p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                            {slot.group && slot.group !== 'All' && (
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4.5 font-semibold">
+                                Group {slot.group}
+                              </Badge>
+                            )}
                             {slot.room && <span>Room: {slot.room}</span>}
                             {slot.teacher && <span>· {slot.teacher}</span>}
+                            {slot.section && <span>· Sec {slot.section}</span>}
                           </div>
                         </div>
                       </div>

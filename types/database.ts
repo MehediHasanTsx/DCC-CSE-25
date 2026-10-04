@@ -216,12 +216,19 @@ export interface MetaRecord {
   value: string;
 }
 
-// ── Lab Groups (Admin-Configurable) ──────────────────
+// ── Lab Groups & Sections (Admin-Configurable) ──────────────────
 export interface LabGroup {
   group: string;      // e.g. 'P', 'Q', 'R'
   rollStart: number;  // e.g. 2
   rollEnd: number;    // e.g. 65
   label: string;      // e.g. 'Group P (Roll 2–65)'
+}
+
+export interface SectionConfig {
+  section: string;    // e.g. 'A', 'B'
+  rollStart: number;  // e.g. 2
+  rollEnd: number;    // e.g. 88
+  label?: string;     // e.g. 'Section A (Roll 2–88)'
 }
 
 // ── Exam Routine System ──────────────────────────────
@@ -322,6 +329,7 @@ export interface MainData {
   assignments?: Assignment[];
   examRoutines?: ExamRoutineItem[];
   labGroups?: LabGroup[];
+  sections?: SectionConfig[];
   scholarshipResults?: StudentResultRecord[];
   scholarshipConfig?: ScholarshipConfig;
   updatedAt?: string | Date;

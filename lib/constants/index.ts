@@ -169,6 +169,11 @@ export const DEFAULT_5TH_SEMESTER_SUBJECTS = [
   },
 ];
 
+export const DEFAULT_SECTIONS = [
+  { section: 'A', rollStart: 2, rollEnd: 88, label: 'Section A (Roll 2–88)' },
+  { section: 'B', rollStart: 89, rollEnd: 193, label: 'Section B (Roll 89–193)' },
+];
+
 export const DEFAULT_LAB_GROUPS = [
   { group: 'P', rollStart: 2, rollEnd: 65, label: 'Group P (Roll 2–65)' },
   { group: 'Q', rollStart: 66, rollEnd: 126, label: 'Group Q (Roll 66–126)' },

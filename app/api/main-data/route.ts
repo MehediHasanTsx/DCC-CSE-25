@@ -9,6 +9,7 @@ import {
   DEFAULT_5TH_SEMESTER_ROUTINE,
   DEFAULT_5TH_SEMESTER_EXAM_ROUTINE,
   DEFAULT_LAB_GROUPS,
+  DEFAULT_SECTIONS,
   DEFAULT_SCHOLARSHIP_CONFIG,
 } from '@/lib/constants';
 
@@ -50,6 +51,7 @@ function getDefaultFallback(semesterId = 'semester-5') {
     assignments: [],
     examRoutines: semesterId === 'semester-5' ? DEFAULT_5TH_SEMESTER_EXAM_ROUTINE : [],
     labGroups: semesterId === 'semester-5' ? DEFAULT_LAB_GROUPS : [],
+    sections: semesterId === 'semester-5' ? DEFAULT_SECTIONS : [],
     scholarshipConfig: DEFAULT_SCHOLARSHIP_CONFIG,
     scholarshipResults: [],
     updatedAt: new Date().toISOString(),
@@ -93,6 +95,7 @@ export async function GET(request: NextRequest) {
         assignments: row.assignments || [],
         examRoutines: row.examRoutines || (semesterId === 'semester-5' ? DEFAULT_5TH_SEMESTER_EXAM_ROUTINE : []),
         labGroups: row.labGroups || (semesterId === 'semester-5' ? DEFAULT_LAB_GROUPS : []),
+        sections: row.sections || (semesterId === 'semester-5' ? DEFAULT_SECTIONS : []),
         scholarshipConfig: row.scholarshipConfig || DEFAULT_SCHOLARSHIP_CONFIG,
         scholarshipResults: row.scholarshipResults || [],
         updatedAt: row.updatedAt,
@@ -133,6 +136,7 @@ export async function POST(request: NextRequest) {
       assignments,
       examRoutines,
       labGroups,
+      sections,
       scholarshipConfig,
       scholarshipResults,
     } = body;
@@ -142,6 +146,25 @@ export async function POST(request: NextRequest) {
         { error: 'Invalid payload format: subjects and routine must be arrays.' },
         { status: 400 }
       );
+    }
+
+    // Ensure table has all necessary JSONB columns
+    if (process.env.DATABASE_URL) {
+      try {
+        const { neon } = await import('@neondatabase/serverless');
+        const sql = neon(process.env.DATABASE_URL);
+        await sql`
+          ALTER TABLE main_data 
+          ADD COLUMN IF NOT EXISTS sections JSONB NOT NULL DEFAULT '[]'::jsonb,
+          ADD COLUMN IF NOT EXISTS lab_groups JSONB NOT NULL DEFAULT '[]'::jsonb,
+          ADD COLUMN IF NOT EXISTS exam_routines JSONB NOT NULL DEFAULT '[]'::jsonb,
+          ADD COLUMN IF NOT EXISTS assignments JSONB NOT NULL DEFAULT '[]'::jsonb,
+          ADD COLUMN IF NOT EXISTS scholarship_results JSONB NOT NULL DEFAULT '[]'::jsonb,
+          ADD COLUMN IF NOT EXISTS scholarship_config JSONB NOT NULL DEFAULT '{}'::jsonb;
+        `;
+      } catch (e) {
+        console.warn('Could not run column migration check:', e);
+      }
     }
 
     const db = getServerDb();
@@ -164,6 +187,7 @@ export async function POST(request: NextRequest) {
 
     if (examRoutines !== undefined) updatePayload.examRoutines = examRoutines;
     if (labGroups !== undefined) updatePayload.labGroups = labGroups;
+    if (sections !== undefined) updatePayload.sections = sections;
     if (scholarshipConfig !== undefined) updatePayload.scholarshipConfig = scholarshipConfig;
     if (scholarshipResults !== undefined) updatePayload.scholarshipResults = scholarshipResults;
 
@@ -182,6 +206,7 @@ export async function POST(request: NextRequest) {
         assignments: Array.isArray(assignments) ? assignments : [],
         examRoutines: Array.isArray(examRoutines) ? examRoutines : [],
         labGroups: Array.isArray(labGroups) ? labGroups : [],
+        sections: Array.isArray(sections) ? sections : (semesterId === 'semester-5' ? DEFAULT_SECTIONS : []),
         scholarshipConfig: scholarshipConfig || DEFAULT_SCHOLARSHIP_CONFIG,
         scholarshipResults: Array.isArray(scholarshipResults) ? scholarshipResults : [],
         updatedAt: now,

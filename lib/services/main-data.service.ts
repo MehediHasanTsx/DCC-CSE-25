@@ -29,6 +29,7 @@ export const mainDataService = {
       assignments?: Assignment[];
       examRoutines?: ExamRoutineItem[];
       labGroups?: import('@/types/database').LabGroup[];
+      sections?: import('@/types/database').SectionConfig[];
       scholarshipConfig?: ScholarshipConfig;
       scholarshipResults?: StudentResultRecord[];
     }
@@ -45,6 +46,7 @@ export const mainDataService = {
         assignments: payload.assignments || [],
         examRoutines: payload.examRoutines,
         labGroups: payload.labGroups,
+        sections: payload.sections,
         scholarshipConfig: payload.scholarshipConfig,
         scholarshipResults: payload.scholarshipResults,
       }),
