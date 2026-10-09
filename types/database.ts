@@ -5,7 +5,7 @@ export type AttendanceStatus = 'present' | 'absent' | 'late' | 'medical' | 'holi
 export type SubjectType = 'theory' | 'lab';
 
 // ── Fee Status ────────────────────────────────────────
-export type FeeStatus = 'paid' | 'partial' | 'pending';
+export type FeeStatus = 'paid' | 'pending';
 
 // ── Fee Type ──────────────────────────────────────────
 export type FeeType =

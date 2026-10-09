@@ -93,8 +93,6 @@ export const feeService = {
     let status: FeeStatus = 'pending';
     if (paidSoFar >= fee.amount && fee.amount > 0) {
       status = 'paid';
-    } else if (paidSoFar > 0) {
-      status = 'partial';
     }
 
     await db().fees.update(feeId, { status, updatedAt: new Date() });
@@ -104,14 +102,44 @@ export const feeService = {
 
   calculateSummary(fees: Fee[], payments: Payment[]): FeeSummary {
     const totalFees = fees.reduce((sum, f) => sum + f.amount, 0);
-    const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
-    const remainingDue = Math.max(0, totalFees - totalPaid);
+
+    // Build a map of how much has been paid per fee via payment records
+    const paidByFee = new Map<string, number>();
+    for (const p of payments) {
+      if (p.feeId) {
+        paidByFee.set(p.feeId, (paidByFee.get(p.feeId) || 0) + p.amount);
+      }
+    }
+    // Also sum unlinked payments (not tied to any fee)
+    const unlinkedPaid = payments
+      .filter((p) => !p.feeId)
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    // Calculate effective paid and remaining per-fee
+    // If a fee is marked "paid" but has no/partial payment records,
+    // treat the full fee as paid (user cleared it directly)
+    let effectivePaid = unlinkedPaid;
+    let remainingDue = 0;
+
+    for (const fee of fees) {
+      const recorded = paidByFee.get(fee.id) || 0;
+
+      if (fee.status === 'paid') {
+        // Fee is fully cleared — count the full amount as paid
+        effectivePaid += Math.max(fee.amount, recorded);
+      } else {
+        // pending
+        effectivePaid += recorded;
+        remainingDue += Math.max(0, fee.amount - recorded);
+      }
+    }
+
     const paidFeesCount = fees.filter((f) => f.status === 'paid').length;
     const pendingFeesCount = fees.filter((f) => f.status !== 'paid').length;
 
     return {
       totalFees,
-      totalPaid,
+      totalPaid: effectivePaid,
       remainingDue,
       remaining: remainingDue,
       paidFeesCount,

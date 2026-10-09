@@ -60,31 +60,49 @@ export default function FeesPage() {
 
   // Lifetime summary calculated from all semesters
   const lifetimeSummary = useMemo(() => {
-    const totalFees = allFees.reduce((sum, f) => sum + f.amount, 0);
-    const totalPaid = allPayments.reduce((sum, p) => sum + p.amount, 0);
-    const remaining = Math.max(0, totalFees - totalPaid);
+    // Group fees and payments by semester
+    const semFees = new Map<string, Fee[]>();
+    const semPayments = new Map<string, Payment[]>();
 
-    // Group by semester
-    const bySemester = new Map<string, { fees: number; paid: number }>();
     for (const f of allFees) {
-      const entry = bySemester.get(f.semesterId) || { fees: 0, paid: 0 };
-      entry.fees += f.amount;
-      bySemester.set(f.semesterId, entry);
+      const arr = semFees.get(f.semesterId) || [];
+      arr.push(f);
+      semFees.set(f.semesterId, arr);
     }
     for (const p of allPayments) {
-      const entry = bySemester.get(p.semesterId) || { fees: 0, paid: 0 };
-      entry.paid += p.amount;
-      bySemester.set(p.semesterId, entry);
+      const arr = semPayments.get(p.semesterId) || [];
+      arr.push(p);
+      semPayments.set(p.semesterId, arr);
     }
 
-    const semesters = Array.from(bySemester.entries())
-      .map(([id, data]) => ({
-        id,
-        number: parseInt(id.replace('semester-', ''), 10) || 0,
-        ...data,
-        remaining: Math.max(0, data.fees - data.paid),
-      }))
-      .sort((a, b) => a.number - b.number);
+    // Get all unique semester IDs
+    const allSemIds = new Set([...semFees.keys(), ...semPayments.keys()]);
+
+    let totalFees = 0;
+    let totalPaid = 0;
+    let remaining = 0;
+
+    const semesters: { id: string; number: number; fees: number; paid: number; remaining: number }[] = [];
+
+    for (const semId of allSemIds) {
+      const fees = semFees.get(semId) || [];
+      const payments = semPayments.get(semId) || [];
+      const sum = feeService.calculateSummary(fees, payments);
+
+      totalFees += sum.totalFees;
+      totalPaid += sum.totalPaid;
+      remaining += sum.remainingDue;
+
+      semesters.push({
+        id: semId,
+        number: parseInt(semId.replace('semester-', ''), 10) || 0,
+        fees: sum.totalFees,
+        paid: sum.totalPaid,
+        remaining: sum.remainingDue,
+      });
+    }
+
+    semesters.sort((a, b) => a.number - b.number);
 
     return { totalFees, totalPaid, remaining, semesters };
   }, [allFees, allPayments]);
@@ -259,12 +277,10 @@ export default function FeesPage() {
                             className={`text-xs font-semibold ${
                               isPaid
                                 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/40'
-                                : fee.status === 'partial'
-                                ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/40'
                                 : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/40'
                             }`}
                           >
-                            {isPaid ? 'Paid ✓' : fee.status === 'partial' ? 'Partial' : 'Unpaid'}
+                            {isPaid ? 'Paid ✓' : 'Unpaid'}
                           </Badge>
                         </div>
                         <div className="text-xs text-muted-foreground flex items-center gap-3">
@@ -612,7 +628,6 @@ function FeeForm({
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="pending">Pending (Unpaid)</SelectItem>
-              <SelectItem value="partial">Partial</SelectItem>
               <SelectItem value="paid">Paid (Fully Cleared)</SelectItem>
             </SelectContent>
           </Select>

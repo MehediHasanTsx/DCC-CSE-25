@@ -1,7 +1,7 @@
 import { z } from 'zod/v4';
 
 const feeTypeEnum = z.enum(['semester', 'admission', 'registration', 'formFillUp', 'exam', 'library', 'lab', 'other']);
-const feeStatusEnum = z.enum(['paid', 'partial', 'pending']);
+const feeStatusEnum = z.enum(['paid', 'pending']);
 
 export const feeSchema = z.object({
   type: feeTypeEnum,
