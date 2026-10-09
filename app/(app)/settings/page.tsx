@@ -208,13 +208,10 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2"><Settings className="h-4 w-4" />Data Management</CardTitle>
-          <CardDescription>Sync, export, import, or reset your academic data.</CardDescription>
+          <CardDescription>Your data auto-saves to the cloud. Export, import, or reset locally.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <CloudSyncStatus variant="card" />
-          <p className="text-xs text-muted-foreground text-center">
-            Your data auto-syncs to the cloud securely whenever you make edits.
-          </p>
           <Separator />
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleExport} className="flex-1">
