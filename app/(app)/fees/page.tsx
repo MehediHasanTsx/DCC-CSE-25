@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useProfile } from '@/lib/hooks/useProfile';
 import { feeService, type FeeSummary } from '@/lib/services/fee.service';
 import { FEE_TYPE_LABELS, FEE_TYPES } from '@/lib/constants';
@@ -39,16 +39,55 @@ export default function FeesPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'fee' | 'payment'; id: string; name: string } | null>(null);
   const [activeTab, setActiveTab] = useState<'fees' | 'payments'>('fees');
 
+  // Lifetime (all semesters) data
+  const [allFees, setAllFees] = useState<Fee[]>([]);
+  const [allPayments, setAllPayments] = useState<Payment[]>([]);
+
   const loadData = async () => {
     if (!semesterId) return;
-    const [f, p] = await Promise.all([
+    const [f, p, af, ap] = await Promise.all([
       feeService.getBySemester(semesterId),
       feeService.getPaymentsBySemester(semesterId),
+      feeService.getAll(),
+      feeService.getAllPayments(),
     ]);
     setFees(f);
     setPayments(p);
     setSummary(feeService.calculateSummary(f, p));
+    setAllFees(af);
+    setAllPayments(ap);
   };
+
+  // Lifetime summary calculated from all semesters
+  const lifetimeSummary = useMemo(() => {
+    const totalFees = allFees.reduce((sum, f) => sum + f.amount, 0);
+    const totalPaid = allPayments.reduce((sum, p) => sum + p.amount, 0);
+    const remaining = Math.max(0, totalFees - totalPaid);
+
+    // Group by semester
+    const bySemester = new Map<string, { fees: number; paid: number }>();
+    for (const f of allFees) {
+      const entry = bySemester.get(f.semesterId) || { fees: 0, paid: 0 };
+      entry.fees += f.amount;
+      bySemester.set(f.semesterId, entry);
+    }
+    for (const p of allPayments) {
+      const entry = bySemester.get(p.semesterId) || { fees: 0, paid: 0 };
+      entry.paid += p.amount;
+      bySemester.set(p.semesterId, entry);
+    }
+
+    const semesters = Array.from(bySemester.entries())
+      .map(([id, data]) => ({
+        id,
+        number: parseInt(id.replace('semester-', ''), 10) || 0,
+        ...data,
+        remaining: Math.max(0, data.fees - data.paid),
+      }))
+      .sort((a, b) => a.number - b.number);
+
+    return { totalFees, totalPaid, remaining, semesters };
+  }, [allFees, allPayments]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- data-fetching from IndexedDB
@@ -401,6 +440,97 @@ export default function FeesPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* ── LIFETIME COST SUMMARY ────────────── */}
+      {lifetimeSummary.semesters.length > 0 && (
+        <Card className="border-border/70">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-primary" />
+              Lifetime Cost Summary
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Total costs across all semesters of your CSE journey
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Lifetime totals */}
+            <div className="grid gap-3 grid-cols-3">
+              <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-center">
+                <p className="text-[0.65rem] font-medium text-muted-foreground uppercase tracking-wider mb-1">Total Cost</p>
+                <p className="text-lg font-bold">{formatCurrency(lifetimeSummary.totalFees)}</p>
+              </div>
+              <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-center">
+                <p className="text-[0.65rem] font-medium text-muted-foreground uppercase tracking-wider mb-1">Total Paid</p>
+                <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(lifetimeSummary.totalPaid)}</p>
+              </div>
+              <div className={`rounded-lg border p-3 text-center ${
+                lifetimeSummary.remaining > 0
+                  ? 'border-rose-500/20 bg-rose-500/5'
+                  : 'border-emerald-500/20 bg-emerald-500/5'
+              }`}>
+                <p className="text-[0.65rem] font-medium text-muted-foreground uppercase tracking-wider mb-1">Remaining</p>
+                <p className={`text-lg font-bold ${
+                  lifetimeSummary.remaining > 0
+                    ? 'text-rose-600 dark:text-rose-400'
+                    : 'text-emerald-600 dark:text-emerald-400'
+                }`}>
+                  {lifetimeSummary.remaining > 0 ? formatCurrency(lifetimeSummary.remaining) : 'All Clear ✅'}
+                </p>
+              </div>
+            </div>
+
+            {/* Per-semester breakdown */}
+            {lifetimeSummary.semesters.length > 1 && (
+              <div className="rounded-lg border border-border/60 overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-muted/50 border-b border-border/60">
+                      <th className="text-left px-3 py-2 font-semibold text-muted-foreground">Semester</th>
+                      <th className="text-right px-3 py-2 font-semibold text-muted-foreground">Fees</th>
+                      <th className="text-right px-3 py-2 font-semibold text-muted-foreground">Paid</th>
+                      <th className="text-right px-3 py-2 font-semibold text-muted-foreground">Due</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lifetimeSummary.semesters.map((sem) => (
+                      <tr key={sem.id} className={`border-b border-border/40 last:border-0 ${
+                        sem.id === semesterId ? 'bg-primary/5' : ''
+                      }`}>
+                        <td className="px-3 py-2 font-medium">
+                          Semester {sem.number}
+                          {sem.id === semesterId && (
+                            <Badge variant="secondary" className="ml-1.5 text-[9px] px-1 py-0">Current</Badge>
+                          )}
+                        </td>
+                        <td className="text-right px-3 py-2">{formatCurrency(sem.fees)}</td>
+                        <td className="text-right px-3 py-2 text-emerald-600 dark:text-emerald-400">{formatCurrency(sem.paid)}</td>
+                        <td className={`text-right px-3 py-2 font-medium ${
+                          sem.remaining > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
+                        }`}>
+                          {sem.remaining > 0 ? formatCurrency(sem.remaining) : '✅'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-muted/50 border-t border-border/60 font-bold">
+                      <td className="px-3 py-2">Total</td>
+                      <td className="text-right px-3 py-2">{formatCurrency(lifetimeSummary.totalFees)}</td>
+                      <td className="text-right px-3 py-2 text-emerald-600 dark:text-emerald-400">{formatCurrency(lifetimeSummary.totalPaid)}</td>
+                      <td className={`text-right px-3 py-2 ${
+                        lifetimeSummary.remaining > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
+                      }`}>
+                        {lifetimeSummary.remaining > 0 ? formatCurrency(lifetimeSummary.remaining) : '✅'}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
