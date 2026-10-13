@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -21,9 +22,13 @@ import {
   FlaskConical,
   ShieldCheck,
   Award,
+  ListChecks,
 } from 'lucide-react';
 import { useAuth } from '@/components/providers/auth-provider';
+import { useProfile } from '@/lib/hooks/useProfile';
 import { CloudSyncStatus } from '@/components/shared/cloud-sync-status';
+import { getGravatarUrl } from '@/lib/utils/formatters';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface SidebarProps {
   onNavigate?: () => void;
@@ -57,6 +62,7 @@ const NAV_SECTIONS = [
   {
     label: 'Tools',
     items: [
+      { label: 'Routine Planner', href: '/planner', icon: ListChecks },
       { label: 'Notes', href: '/notes', icon: StickyNote },
       { label: 'Analytics', href: '/analytics', icon: TrendingUp },
       { label: 'Lab Projects', href: '/lab-projects', icon: FlaskConical },
@@ -66,27 +72,45 @@ const NAV_SECTIONS = [
 
 export function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
+  const { profile } = useProfile();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  // Generate Gravatar URL from email
+  useEffect(() => {
+    const email = user?.email || profile?.email;
+    if (email) {
+      getGravatarUrl(email, 80).then(setAvatarUrl);
+    }
+  }, [user?.email, profile?.email]);
+
+  const initials = profile?.fullName
+    ? profile.fullName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+    : user?.username?.slice(0, 2).toUpperCase() || '??';
+
+  // Determine avatar source: custom upload > Gravatar > default
+  const avatarSrc = profile?.profilePicture || avatarUrl || '/default-avatar.jpg';
 
   return (
     <div className="flex h-full w-full flex-col border-r border-border bg-sidebar overflow-hidden">
-      {/* Logo */}
-      <div className="flex h-14 shrink-0 items-center px-5">
+      {/* Profile Header */}
+      <div className="shrink-0 px-4 py-3.5">
         <Link
           href="/"
-          className="flex items-center gap-2.5"
+          className="flex items-center gap-3 group"
           onClick={onNavigate}
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <GraduationCap className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-bold leading-none tracking-tight text-sidebar-foreground">
-              DCC
-            </span>
-            <span className="text-[0.65rem] text-muted-foreground leading-tight">
-              CSE
-            </span>
+          <Avatar className="h-9 w-9 border border-border ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all">
+            <AvatarImage src={avatarSrc} alt={profile?.fullName || 'User'} />
+            <AvatarFallback className="text-[11px] font-bold bg-primary/10 text-primary">{initials}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold truncate leading-tight text-sidebar-foreground">
+              {profile?.fullName || user?.username || 'Student'}
+            </p>
+            <p className="text-[0.65rem] text-muted-foreground leading-tight truncate">
+              DCC CSE
+            </p>
           </div>
         </Link>
       </div>

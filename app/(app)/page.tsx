@@ -11,10 +11,12 @@ import { examRoutineService } from '@/lib/services/exam-routine.service';
 import { mainDataService } from '@/lib/services/main-data.service';
 import { feeService, type FeeSummary } from '@/lib/services/fee.service';
 import { routineService } from '@/lib/services/routine.service';
+import { personalRoutineService, getCategoryMeta } from '@/lib/services/personal-routine.service';
 import { formatCurrency, formatDate, formatTime, getCurrentDay } from '@/lib/utils/formatters';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 
 import { Separator } from '@/components/ui/separator';
 import {
@@ -39,9 +41,13 @@ import {
   X,
   CheckCircle2,
   XCircle,
+  ListChecks,
+  Clock,
+  Circle,
+  Plus,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Assignment, ExamRoutineItem, RoutineSlot, Subject, DayOfWeek, AttendanceStatus } from '@/types/database';
+import type { Assignment, ExamRoutineItem, RoutineSlot, Subject, DayOfWeek, AttendanceStatus, RoutineActivity } from '@/types/database';
 
 export default function DashboardPage() {
   const { profile } = useProfile();
@@ -54,6 +60,11 @@ export default function DashboardPage() {
   const [upcomingAssignments, setUpcomingAssignments] = useState<Assignment[]>([]);
   const [upcomingExams, setUpcomingExams] = useState<ExamRoutineItem[]>([]);
   const [todayClasses, setTodayClasses] = useState<(RoutineSlot & { subject?: Subject })[]>([]);
+  const [todayChecklist, setTodayChecklist] = useState<{
+    activities: (RoutineActivity & { routineName: string; completed: boolean; completedAt?: Date; checklistId?: string })[];
+    stats: { total: number; completed: number; remaining: number; percentage: number };
+  }>({ activities: [], stats: { total: 0, completed: 0, remaining: 0, percentage: 0 } });
+  const [togglingActivityId, setTogglingActivityId] = useState<string | null>(null);
   const [feeSummary, setFeeSummary] = useState<FeeSummary | null>(null);
   const [quickAttendanceOpen, setQuickAttendanceOpen] = useState(false);
   const [markingSubjectId, setMarkingSubjectId] = useState<string | null>(null);
@@ -94,13 +105,16 @@ export default function DashboardPage() {
           // Continue with local data if offline or cloud unavailable
         }
 
-        const [cgpaResult, assignments, allExamRoutines, fees, payments, routine] = await Promise.all([
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        const [cgpaResult, assignments, allExamRoutines, fees, payments, routine, checklist] = await Promise.all([
           gpaService.calculateCgpa(),
           assignmentService.getUpcoming(semesterId),
           examRoutineService.getExamRoutines(semesterId),
           feeService.getBySemester(semesterId),
           feeService.getPaymentsBySemester(semesterId),
           routineService.getBySemester(semesterId),
+          personalRoutineService.getChecklistForDate(todayStr),
         ]);
 
         setCgpa(cgpaResult);
@@ -112,7 +126,6 @@ export default function DashboardPage() {
 
         // Auto-derive upcoming exams from exam routine data
         // Only show exams whose date is today or in the future, sorted by date
-        const todayStr = new Date().toISOString().split('T')[0];
         const upcomingFromRoutine = allExamRoutines
           .filter((r) => r.date >= todayStr)
           .sort((a, b) => a.date.localeCompare(b.date))
@@ -120,6 +133,7 @@ export default function DashboardPage() {
         setUpcomingExams(upcomingFromRoutine);
 
         setFeeSummary(feeService.calculateSummary(fees, payments));
+        setTodayChecklist(checklist);
 
         // Today's classes
         const today = getCurrentDay() as DayOfWeek;
@@ -138,6 +152,20 @@ export default function DashboardPage() {
 
     loadDashboardData();
   }, [semesterId, subjects]);
+
+  const handleToggleChecklist = async (activityId: string, routineId: string) => {
+    try {
+      setTogglingActivityId(activityId);
+      const todayStr = new Date().toISOString().split('T')[0];
+      await personalRoutineService.toggleActivity(todayStr, activityId, routineId);
+      const updated = await personalRoutineService.getChecklistForDate(todayStr);
+      setTodayChecklist(updated);
+    } catch {
+      toast.error('Failed to update activity.');
+    } finally {
+      setTogglingActivityId(null);
+    }
+  };
 
   if (!profile) return null;
 
@@ -408,30 +436,12 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                type="button"
-                onClick={() => setQuickAttendanceOpen(true)}
-                className="h-auto w-full flex-col gap-1.5 py-3 text-xs"
-              >
-                <CheckSquare className="h-4 w-4 text-emerald-500" />
-                Mark Attendance
-              </Button>
-              <QuickAction href="/subjects" icon={BookOpen} label="Add Subject" />
-              <QuickAction href="/assignments" icon={ClipboardList} label="Add Assignment" />
-              <QuickAction href="/exams" icon={GraduationCap} label="Exam Routine" />
-              <QuickAction href="/fees" icon={DollarSign} label="Add Payment" />
-              <QuickAction href="/results" icon={BarChart3} label="Results & Scholarship" />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Today's Checklist */}
+        <TodayChecklistCard
+          checklist={todayChecklist}
+          onToggle={handleToggleChecklist}
+          togglingId={togglingActivityId}
+        />
 
         {/* Upcoming Assignments */}
         <Card>
@@ -472,49 +482,34 @@ export default function DashboardPage() {
         </Card>
 
         {/* Upcoming Exams */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Upcoming Exams</CardTitle>
-              <Link href="/exams">
-                <Button variant="ghost" size="sm">
-                  View All <ArrowRight className="ml-1 h-3 w-3" />
-                </Button>
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {upcomingExams.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">
-                No upcoming exams.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {upcomingExams.map((e) => {
-                  const todayStr = new Date().toISOString().split('T')[0];
-                  const daysLeft = Math.ceil(
-                    (new Date(e.date).getTime() - new Date(todayStr).getTime()) / (1000 * 60 * 60 * 24)
-                  );
-                  const examTypeLabel = e.examType === 'in_course' ? 'In-Course' : e.examType === 'semester_final' ? 'Semester Final' : 'NU Final';
-                  return (
-                    <div key={e.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{e.courseName}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {examTypeLabel} · {e.courseCode} · {formatDate(e.date)}{e.time ? ` (${e.time})` : ''}
-                        </p>
-                      </div>
-                      <Badge variant={daysLeft <= 3 ? 'destructive' : 'secondary'} className="ml-2 text-xs shrink-0">
-                        {daysLeft <= 0 ? 'Today' : `${daysLeft}d left`}
-                      </Badge>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <ExamCountdownCard exams={upcomingExams} />
       </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => setQuickAttendanceOpen(true)}
+              className="h-auto w-full flex-col gap-1.5 py-3 text-xs"
+            >
+              <CheckSquare className="h-4 w-4 text-emerald-500" />
+              Mark Attendance
+            </Button>
+            <QuickAction href="/planner" icon={ListChecks} label="Routine Planner" />
+            <QuickAction href="/subjects" icon={BookOpen} label="Add Subject" />
+            <QuickAction href="/assignments" icon={ClipboardList} label="Add Assignment" />
+            <QuickAction href="/exams" icon={GraduationCap} label="Exam Routine" />
+            <QuickAction href="/fees" icon={DollarSign} label="Add Payment" />
+            <QuickAction href="/results" icon={BarChart3} label="Results & Scholarship" />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Quick Attendance Dialog */}
       <Dialog open={quickAttendanceOpen} onOpenChange={setQuickAttendanceOpen}>
@@ -723,3 +718,276 @@ function getGreeting(name: string): string {
   if (hour < 17) return `Good afternoon, ${firstName}`;
   return `Good evening, ${firstName}`;
 }
+
+/**
+ * Parse an exam time string like "12:30 pm – 2:30 pm" and return the end time as a Date on the exam date.
+ * Returns null if the time string can't be parsed.
+ */
+function parseExamEndTime(dateStr: string, timeStr?: string): Date | null {
+  if (!timeStr) return null;
+  try {
+    // Try to extract the end time portion (after – or -)
+    const parts = timeStr.split(/[–\-]/);
+    const endPart = (parts.length > 1 ? parts[1] : parts[0]).trim();
+    // Parse "2:30 pm" or "14:30" formats
+    const match = endPart.match(/^(\d{1,2}):(\d{2})\s*(am|pm)?$/i);
+    if (!match) return null;
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const period = match[3]?.toLowerCase();
+    if (period === 'pm' && hours !== 12) hours += 12;
+    if (period === 'am' && hours === 12) hours = 0;
+    const d = new Date(dateStr + 'T00:00:00');
+    d.setHours(hours, minutes, 0, 0);
+    return d;
+  } catch {
+    return null;
+  }
+}
+
+function ExamCountdownCard({ exams }: { exams: ExamRoutineItem[] }) {
+  const [now, setNow] = useState(() => new Date());
+
+  // Auto-update every 30 seconds
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Filter out exams whose time has already passed
+  const activeExams = exams.filter((e) => {
+    const endTime = parseExamEndTime(e.date, e.time);
+    if (endTime) return endTime.getTime() > now.getTime();
+    // If no time info, keep if date is today or future
+    return new Date(e.date + 'T23:59:59').getTime() > now.getTime();
+  });
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base">Upcoming Exams</CardTitle>
+          <Link href="/exams">
+            <Button variant="ghost" size="sm">
+              View All <ArrowRight className="ml-1 h-3 w-3" />
+            </Button>
+          </Link>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {activeExams.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-4 text-center">
+            No upcoming exams.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {activeExams.map((e) => {
+              // Calculate time remaining
+              const examDate = new Date(e.date + 'T00:00:00');
+              const examStart = e.time
+                ? (() => {
+                    const match = e.time.trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+                    if (match) {
+                      let h = parseInt(match[1], 10);
+                      const m = parseInt(match[2], 10);
+                      const p = match[3]?.toLowerCase();
+                      if (p === 'pm' && h !== 12) h += 12;
+                      if (p === 'am' && h === 12) h = 0;
+                      const d = new Date(examDate);
+                      d.setHours(h, m, 0, 0);
+                      return d;
+                    }
+                    return examDate;
+                  })()
+                : examDate;
+
+              const diffMs = examStart.getTime() - now.getTime();
+              const diffHours = diffMs / (1000 * 60 * 60);
+              const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+              let countdownLabel: string;
+              let isUrgent = false;
+              if (diffMs <= 0) {
+                countdownLabel = 'Now';
+                isUrgent = true;
+              } else if (diffHours < 24) {
+                const h = Math.floor(diffHours);
+                const m = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                countdownLabel = h > 0 ? `${h}h ${m}m` : `${m}m`;
+                isUrgent = true;
+              } else {
+                countdownLabel = `${diffDays}d left`;
+                isUrgent = diffDays <= 3;
+              }
+
+              const examTypeLabel = e.examType === 'in_course' ? 'In-Course' : e.examType === 'semester_final' ? 'Semester Final' : 'NU Final';
+
+              return (
+                <div key={e.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{e.courseName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {examTypeLabel} · {e.courseCode} · {formatDate(e.date)}{e.time ? ` (${e.time})` : ''}
+                    </p>
+                  </div>
+                  <Badge variant={isUrgent ? 'destructive' : 'secondary'} className="ml-2 text-xs shrink-0">
+                    {countdownLabel}
+                  </Badge>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function TodayChecklistCard({
+  checklist,
+  onToggle,
+  togglingId,
+}: {
+  checklist: {
+    activities: (RoutineActivity & { routineName: string; completed: boolean; completedAt?: Date; checklistId?: string })[];
+    stats: { total: number; completed: number; remaining: number; percentage: number };
+  };
+  onToggle: (activityId: string, routineId: string) => void;
+  togglingId: string | null;
+}) {
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+
+  return (
+    <Card className="flex flex-col">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <ListChecks className="h-4 w-4 text-primary" />
+              Today&apos;s Checklist
+            </CardTitle>
+            {checklist.stats.total > 0 && (
+              <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                {checklist.stats.completed}/{checklist.stats.total}
+              </Badge>
+            )}
+          </div>
+          <Link href="/planner">
+            <Button variant="ghost" size="sm" className="h-7 text-xs">
+              Planner <ArrowRight className="ml-1 h-3 w-3" />
+            </Button>
+          </Link>
+        </div>
+
+        {checklist.stats.total > 0 && (
+          <div className="space-y-1.5 pt-2">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{checklist.stats.percentage}% completed</span>
+              <span>{checklist.stats.remaining} remaining</span>
+            </div>
+            <Progress value={checklist.stats.percentage} className="h-2" />
+          </div>
+        )}
+      </CardHeader>
+
+      <CardContent className="flex-1">
+        {checklist.activities.length === 0 ? (
+          <div className="py-6 text-center space-y-2">
+            <p className="text-sm text-muted-foreground">No routine activities scheduled for today.</p>
+            <p className="text-xs text-muted-foreground/70">
+              Create a routine in the planner to schedule your daily habits and tasks.
+            </p>
+            <div className="pt-2">
+              <Link href="/planner">
+                <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5">
+                  <Plus className="h-3.5 w-3.5" />
+                  Set Up Routine
+                </Button>
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {checklist.activities.slice(0, 6).map((activity) => {
+              const cat = getCategoryMeta(activity.category);
+              const actEndParts = activity.endTime.split(':');
+              const actEnd = new Date(todayStr + 'T00:00:00');
+              actEnd.setHours(parseInt(actEndParts[0], 10), parseInt(actEndParts[1], 10));
+              const isPast = !activity.completed && actEnd < now;
+              const isToggling = togglingId === activity.id;
+
+              return (
+                <div
+                  key={activity.id}
+                  onClick={() => !isToggling && onToggle(activity.id, activity.routineId)}
+                  className={`flex items-start gap-3 p-2.5 rounded-lg border transition-all cursor-pointer ${
+                    activity.completed
+                      ? 'bg-muted/30 border-muted opacity-80'
+                      : isPast
+                      ? 'border-rose-500/30 bg-rose-500/5 hover:border-rose-500/50'
+                      : 'border-border hover:border-primary/40 hover:bg-muted/20'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    disabled={isToggling}
+                    className="mt-0.5 shrink-0 transition-transform active:scale-90"
+                    aria-label={`Toggle ${activity.title}`}
+                  >
+                    {activity.completed ? (
+                      <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500" />
+                    ) : isPast ? (
+                      <AlertCircle className="h-4.5 w-4.5 text-rose-400" />
+                    ) : (
+                      <Circle className="h-4.5 w-4.5 text-muted-foreground/40 hover:text-primary transition-colors" />
+                    )}
+                  </button>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p
+                        className={`text-sm font-medium leading-snug truncate ${
+                          activity.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                        }`}
+                      >
+                        {activity.title}
+                      </p>
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] px-1.5 py-0 h-4 font-normal"
+                        style={{ borderColor: cat.color + '40', color: cat.color }}
+                      >
+                        {cat.icon} {cat.label}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-0.5">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {formatTime(activity.startTime)} – {formatTime(activity.endTime)}
+                      </span>
+                      <span>·</span>
+                      <span className="truncate">{activity.routineName}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {checklist.activities.length > 6 && (
+              <div className="pt-1 text-center">
+                <Link href="/planner">
+                  <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground">
+                    +{checklist.activities.length - 6} more in Planner →
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+

@@ -73,3 +73,39 @@ export function todayISO(): string {
 export function getCurrentDay(): string {
   return new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 }
+
+/**
+ * Generate a Gravatar URL from an email address.
+ * Uses SHA-256 hashing (Web Crypto API) for the email hash.
+ * Returns null if user does not have a Gravatar account, allowing fallback to default avatar image.
+ */
+export async function getGravatarUrl(email: string, size: number = 80): Promise<string | null> {
+  const trimmed = email.trim().toLowerCase();
+  if (!trimmed) return null;
+  const encoder = new TextEncoder();
+  const data = encoder.encode(trimmed);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+  const url = `https://www.gravatar.com/avatar/${hashHex}?d=404&s=${size}`;
+
+  if (typeof window !== 'undefined') {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(url);
+      img.onerror = () => resolve(null);
+      img.src = url;
+    });
+  }
+
+  return url;
+}
+
+/**
+ * Synchronous Gravatar URL using a pre-computed hash.
+ * For use in rendering when the hash is already known.
+ */
+export function getGravatarUrlSync(emailHash: string, size: number = 80): string {
+  return `https://www.gravatar.com/avatar/${emailHash}?d=404&s=${size}`;
+}
+

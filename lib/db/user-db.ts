@@ -18,6 +18,9 @@ import type {
   ExamRoutineItem,
   StudentResultRecord,
   ScholarshipConfig,
+  PersonalRoutine,
+  RoutineActivity,
+  DailyChecklistEntry,
 } from '@/types/database';
 
 // ── Type for User-Scoped Database ─────────────────────
@@ -41,6 +44,9 @@ export type UserDatabase = Dexie & {
   examRoutines: EntityTable<ExamRoutineItem, 'id'>;
   studentResults: EntityTable<StudentResultRecord, 'id'>;
   scholarshipConfig: EntityTable<ScholarshipConfig, 'id'>;
+  personalRoutines: EntityTable<PersonalRoutine, 'id'>;
+  routineActivities: EntityTable<RoutineActivity, 'id'>;
+  dailyChecklist: EntityTable<DailyChecklistEntry, 'id'>;
 };
 
 /**
@@ -77,6 +83,13 @@ export function createUserDatabase(userId: string): UserDatabase {
     examRoutines: 'id, semesterId, examType, date, [semesterId+examType]',
     studentResults: 'id, semesterId, studentId, subjectCode, [semesterId+subjectCode]',
     scholarshipConfig: 'id',
+  });
+
+  // Version 3: Add Personal Routine Planner
+  db.version(3).stores({
+    personalRoutines: 'id, name, isActive',
+    routineActivities: 'id, routineId, category, order, [routineId+order]',
+    dailyChecklist: 'id, date, activityId, routineId, completed, [date+routineId], [date+activityId]',
   });
 
   return db;

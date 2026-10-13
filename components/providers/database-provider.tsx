@@ -149,11 +149,78 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
 
   if (!isReady) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="text-sm text-muted-foreground">Initializing…</p>
+      <div className="flex h-screen items-center justify-center bg-background relative overflow-hidden">
+        {/* Subtle animated background gradient */}
+        <div
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.06]"
+          style={{
+            background: 'radial-gradient(ellipse at 30% 20%, hsl(var(--primary)) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, hsl(var(--primary)) 0%, transparent 50%)',
+            animation: 'pulse 4s ease-in-out infinite',
+          }}
+        />
+        <div className="flex flex-col items-center gap-6 relative z-10">
+          {/* Logo */}
+          <div className="relative">
+            <div
+              className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 shadow-lg"
+              style={{ animation: 'pulse 2s ease-in-out infinite' }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-primary"
+              >
+                <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z" />
+                <path d="M22 10v6" />
+                <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" />
+              </svg>
+            </div>
+            {/* Shimmer ring */}
+            <div
+              className="absolute -inset-1 rounded-2xl border border-primary/10"
+              style={{
+                animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',
+                opacity: 0.4,
+              }}
+            />
+          </div>
+
+          {/* Brand */}
+          <div className="text-center space-y-1">
+            <h2 className="text-lg font-bold tracking-tight text-foreground">DCC CSE</h2>
+            <p className="text-xs text-muted-foreground font-medium tracking-wide">Student Dashboard</p>
+          </div>
+
+          {/* Animated dots */}
+          <div className="flex items-center gap-1.5">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-1.5 w-1.5 rounded-full bg-primary/60"
+                style={{
+                  animation: `bounce 1.4s ease-in-out ${i * 0.16}s infinite`,
+                }}
+              />
+            ))}
+          </div>
+
+          <p className="text-[11px] text-muted-foreground/60">Preparing your workspace…</p>
         </div>
+
+        {/* Inline keyframes */}
+        <style>{`
+          @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1.2); opacity: 1; }
+          }
+        `}</style>
       </div>
     );
   }

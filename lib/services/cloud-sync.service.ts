@@ -36,6 +36,9 @@ export interface SyncData {
   examRoutines?: unknown[];
   studentResults?: unknown[];
   scholarshipConfig?: unknown[];
+  personalRoutines?: unknown[];
+  routineActivities?: unknown[];
+  dailyChecklist?: unknown[];
 }
 
 export type SmartSyncResult =
@@ -98,6 +101,7 @@ async function exportSnapshot(): Promise<SyncData> {
     gradeScale, fees, payments, routine, assignments,
     exams, notes, settings, projects,
     examRoutines, studentResults, scholarshipConfig,
+    personalRoutines, routineActivities, dailyChecklist,
   ] = await Promise.all([
     db().profile.toArray(),
     db().semesters.toArray(),
@@ -116,6 +120,9 @@ async function exportSnapshot(): Promise<SyncData> {
     db().examRoutines.toArray(),
     db().studentResults.toArray(),
     db().scholarshipConfig.toArray(),
+    db().personalRoutines.toArray(),
+    db().routineActivities.toArray(),
+    db().dailyChecklist.toArray(),
   ]);
 
   return {
@@ -123,6 +130,7 @@ async function exportSnapshot(): Promise<SyncData> {
     gradeScale, fees, payments, routine, assignments,
     exams, notes, settings, projects,
     examRoutines, studentResults, scholarshipConfig,
+    personalRoutines, routineActivities, dailyChecklist,
   };
 }
 
@@ -170,6 +178,7 @@ async function importSnapshot(data: SyncData): Promise<void> {
         db().routine, db().assignments, db().exams, db().notes,
         db().settings, db().projects,
         db().examRoutines, db().studentResults, db().scholarshipConfig,
+        db().personalRoutines, db().routineActivities, db().dailyChecklist,
       ],
       async () => {
         // Clear all tables first
@@ -191,6 +200,9 @@ async function importSnapshot(data: SyncData): Promise<void> {
           db().examRoutines.clear(),
           db().studentResults.clear(),
           db().scholarshipConfig.clear(),
+          db().personalRoutines.clear(),
+          db().routineActivities.clear(),
+          db().dailyChecklist.clear(),
         ]);
 
         // Import all data with proper Date objects restored
@@ -211,6 +223,9 @@ async function importSnapshot(data: SyncData): Promise<void> {
         if (restored.examRoutines?.length) await db().examRoutines.bulkAdd(restored.examRoutines as never[]);
         if (restored.studentResults?.length) await db().studentResults.bulkAdd(restored.studentResults as never[]);
         if (restored.scholarshipConfig?.length) await db().scholarshipConfig.bulkAdd(restored.scholarshipConfig as never[]);
+        if (restored.personalRoutines?.length) await db().personalRoutines.bulkAdd(restored.personalRoutines as never[]);
+        if (restored.routineActivities?.length) await db().routineActivities.bulkAdd(restored.routineActivities as never[]);
+        if (restored.dailyChecklist?.length) await db().dailyChecklist.bulkAdd(restored.dailyChecklist as never[]);
       }
     );
   } finally {

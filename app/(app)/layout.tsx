@@ -46,8 +46,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (authLoading || !dbReady || !ready) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-2 w-2 rounded-full bg-primary/60"
+                style={{
+                  animation: `appBounce 1.4s ease-in-out ${i * 0.16}s infinite`,
+                }}
+              />
+            ))}
+          </div>
+          <style>{`
+            @keyframes appBounce {
+              0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+              40% { transform: scale(1.2); opacity: 1; }
+            }
+          `}</style>
+        </div>
       </div>
     );
   }

@@ -336,3 +336,39 @@ export interface MainData {
   updatedBy?: string;
 }
 
+// ── Activity Category ─────────────────────────────────
+export type ActivityCategory = 'study' | 'work' | 'class' | 'prayer' | 'health' | 'personal' | 'other';
+
+// ── Personal Routine Planner ──────────────────────────
+export interface PersonalRoutine {
+  id: string;
+  name: string;              // e.g. "Class + Office", "Weekend"
+  weekdays: DayOfWeek[];     // Which days this routine is active
+  specificDate?: string;     // Optional one-time date (YYYY-MM-DD)
+  isActive: boolean;         // Whether this routine is enabled
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface RoutineActivity {
+  id: string;
+  routineId: string;         // References PersonalRoutine.id
+  title: string;
+  startTime: string;         // HH:mm
+  endTime: string;           // HH:mm
+  category: ActivityCategory;
+  notes?: string;
+  order: number;             // Display order
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DailyChecklistEntry {
+  id: string;
+  date: string;              // YYYY-MM-DD
+  activityId: string;        // References RoutineActivity.id
+  routineId: string;         // References PersonalRoutine.id
+  completed: boolean;
+  completedAt?: Date;
+  createdAt: Date;
+}

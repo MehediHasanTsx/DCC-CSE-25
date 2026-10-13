@@ -7,23 +7,25 @@ import { useAuth } from '@/components/providers/auth-provider';
 import { useProfile } from '@/lib/hooks/useProfile';
 import { settingsService } from '@/lib/services/settings.service';
 import { backupService } from '@/lib/services/backup.service';
+import { profileService } from '@/lib/services/profile.service';
 import { CloudSyncStatus } from '@/components/shared/cloud-sync-status';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Settings, Moon, Sun, Monitor, Download, Upload, Trash2, User, GraduationCap, AlertTriangle, LogOut, Shield } from 'lucide-react';
+import { Settings, Moon, Sun, Monitor, Download, Upload, Trash2, User, GraduationCap, AlertTriangle, LogOut, Shield, Camera, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { getGravatarUrl } from '@/lib/utils/formatters';
 import type { Settings as SettingsType } from '@/types/database';
 
 export default function SettingsPage() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const { user, logout } = useAuth();
-  const { profile } = useProfile();
+  const { profile, reload: reloadProfile } = useProfile();
   const [settings, setSettings] = useState<SettingsType | null>(null);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
@@ -100,6 +102,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><Shield className="h-4 w-4" />Account</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            <AccountAvatar user={user} profile={profile} onProfileUpdate={reloadProfile} />
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div><span className="text-muted-foreground">Username:</span> {user.username}</div>
               <div><span className="text-muted-foreground">Mobile:</span> {user.mobile}</div>
@@ -271,4 +274,144 @@ export default function SettingsPage() {
       </AlertDialog>
     </div>
   );
+}
+
+function AccountAvatar({ user, profile, onProfileUpdate }: { user: { email?: string | null; username: string }; profile: { fullName: string; email?: string; profilePicture?: string } | null; onProfileUpdate?: () => void }) {
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const email = user.email || profile?.email;
+    if (email) {
+      getGravatarUrl(email, 120).then(setAvatarUrl);
+    }
+  }, [user.email, profile?.email]);
+
+  const initials = profile?.fullName
+    ? profile.fullName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+    : user.username.slice(0, 2).toUpperCase();
+
+  // Priority: custom upload > gravatar > default avatar
+  const displaySrc = profile?.profilePicture || avatarUrl || '/default-avatar.jpg';
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file.');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Read and resize image to 200x200
+      const dataUrl = await resizeImage(file, 200, 200);
+      await profileService.setProfilePicture(dataUrl);
+      toast.success('Profile picture updated!');
+      onProfileUpdate?.();
+    } catch (err) {
+      console.error('Failed to upload profile picture:', err);
+      toast.error('Failed to update profile picture.');
+    } finally {
+      setUploading(false);
+      // Reset file input
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemove = async () => {
+    try {
+      await profileService.removeProfilePicture();
+      toast.success('Profile picture removed.');
+      onProfileUpdate?.();
+    } catch {
+      toast.error('Failed to remove profile picture.');
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-4">
+      <div className="relative group">
+        <Avatar className="h-16 w-16 border-2 border-border">
+          <AvatarImage src={displaySrc} alt={profile?.fullName || user.username} />
+          <AvatarFallback className="text-lg font-bold bg-primary/10 text-primary">{initials}</AvatarFallback>
+        </Avatar>
+        {/* Camera overlay */}
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+        >
+          <Camera className="h-5 w-5 text-white" />
+        </button>
+        {/* Remove button */}
+        {profile?.profilePicture && (
+          <button
+            onClick={handleRemove}
+            className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+      </div>
+      <div>
+        <p className="text-sm font-semibold">{profile?.fullName || user.username}</p>
+        <p className="text-xs text-muted-foreground">{user.email || profile?.email || 'No email set'}</p>
+        <Button
+          variant="link"
+          size="sm"
+          className="h-5 px-0 text-xs text-primary"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+        >
+          {uploading ? 'Uploading…' : 'Change Photo'}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Resize an image file to the given dimensions and return a base64 data URL.
+ */
+function resizeImage(file: File, maxWidth: number, maxHeight: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        // Maintain aspect ratio, crop to square center
+        const size = Math.min(img.width, img.height);
+        const sx = (img.width - size) / 2;
+        const sy = (img.height - size) / 2;
+        canvas.width = maxWidth;
+        canvas.height = maxHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { reject(new Error('Canvas not supported')); return; }
+        ctx.drawImage(img, sx, sy, size, size, 0, 0, maxWidth, maxHeight);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
 }

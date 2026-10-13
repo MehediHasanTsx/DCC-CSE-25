@@ -50,6 +50,9 @@ interface BackupData {
     notes: unknown[];
     settings: unknown[];
     projects: unknown[];
+    personalRoutines?: unknown[];
+    routineActivities?: unknown[];
+    dailyChecklist?: unknown[];
   };
 }
 
@@ -78,6 +81,9 @@ const backupSchema = z.object({
     notes: z.array(z.unknown()),
     settings: z.array(z.unknown()),
     projects: z.array(z.unknown()),
+    personalRoutines: z.array(z.unknown()).optional(),
+    routineActivities: z.array(z.unknown()).optional(),
+    dailyChecklist: z.array(z.unknown()).optional(),
   }),
 });
 
@@ -90,6 +96,7 @@ export const backupService = {
       profile, semesters, subjects, attendance, results,
       gradeScale, fees, payments, routine, assignments,
       exams, notes, settings, projects,
+      personalRoutines, routineActivities, dailyChecklist,
     ] = await Promise.all([
       db().profile.toArray(),
       db().semesters.toArray(),
@@ -105,6 +112,9 @@ export const backupService = {
       db().notes.toArray(),
       db().settings.toArray(),
       db().projects.toArray(),
+      db().personalRoutines.toArray(),
+      db().routineActivities.toArray(),
+      db().dailyChecklist.toArray(),
     ]);
 
     const backup: BackupData = {
@@ -115,6 +125,7 @@ export const backupService = {
         profile, semesters, subjects, attendance, results,
         gradeScale, fees, payments, routine, assignments,
         exams, notes, settings, projects,
+        personalRoutines, routineActivities, dailyChecklist,
       },
     };
 
@@ -167,6 +178,9 @@ export const backupService = {
         db().notes,
         db().settings,
         db().projects,
+        db().personalRoutines,
+        db().routineActivities,
+        db().dailyChecklist,
       ],
       async () => {
         await db().profile.clear();
@@ -210,6 +224,15 @@ export const backupService = {
 
         await db().projects.clear();
         if (d.projects.length) await db().projects.bulkAdd(d.projects as never[]);
+
+        await db().personalRoutines.clear();
+        if (d.personalRoutines?.length) await db().personalRoutines.bulkAdd(d.personalRoutines as never[]);
+
+        await db().routineActivities.clear();
+        if (d.routineActivities?.length) await db().routineActivities.bulkAdd(d.routineActivities as never[]);
+
+        await db().dailyChecklist.clear();
+        if (d.dailyChecklist?.length) await db().dailyChecklist.bulkAdd(d.dailyChecklist as never[]);
       }
     );
   },
