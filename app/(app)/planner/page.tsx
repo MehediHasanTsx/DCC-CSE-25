@@ -50,7 +50,7 @@ import {
   AlertCircle,
   LayoutGrid,
 } from 'lucide-react';
-import { formatTime } from '@/lib/utils/formatters';
+import { formatTime, getLocalDateString, parseLocalDate } from '@/lib/utils/formatters';
 import { toast } from 'sonner';
 import type {
   PersonalRoutine,
@@ -70,19 +70,17 @@ const WEEKDAYS: { value: DayOfWeek; label: string; short: string }[] = [
 ];
 
 function getDateString(d: Date): string {
-  return d.toISOString().split('T')[0];
+  return getLocalDateString(d);
 }
 
 function addDays(date: Date, days: number): Date {
-  const d = new Date(date);
-  d.setDate(d.getDate() + days);
-  return d;
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
 }
 
 function getWeekStart(date: Date): Date {
-  const d = new Date(date);
-  const dayIdx = d.getDay(); // 0=Sun
-  // Move to Saturday (start of Bangladeshi week)
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayIdx = d.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  // Move to Saturday (start of Bangladeshi week: Sat=0, Sun=-1, Mon=-2, Tue=-3, Wed=-4, Thu=-5, Fri=-6)
   const satOffset = dayIdx === 6 ? 0 : -(dayIdx + 1);
   d.setDate(d.getDate() + satOffset);
   return d;
@@ -201,7 +199,7 @@ export default function PlannerPage() {
 
   // Navigate dates
   const goToDate = (direction: number) => {
-    const d = new Date(selectedDate + 'T00:00:00');
+    const d = parseLocalDate(selectedDate);
     d.setDate(d.getDate() + direction);
     setSelectedDate(getDateString(d));
   };
@@ -213,7 +211,7 @@ export default function PlannerPage() {
 
   const isToday = selectedDate === getDateString(new Date());
 
-  const selectedDateLabel = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
+  const selectedDateLabel = parseLocalDate(selectedDate).toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'short',
     day: 'numeric',
@@ -417,7 +415,7 @@ export default function PlannerPage() {
             {weeklyStats.map((day) => {
               const isSelected = day.date === selectedDate;
               const isTodayDate = day.date === getDateString(new Date());
-              const dayDate = new Date(day.date + 'T00:00:00');
+              const dayDate = parseLocalDate(day.date);
               return (
                 <button
                   key={day.date}

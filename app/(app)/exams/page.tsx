@@ -6,7 +6,7 @@ import { useSubjects } from '@/lib/hooks/useSubjects';
 import { examRoutineService } from '@/lib/services/exam-routine.service';
 import { examService } from '@/lib/services/exam.service';
 import { mainDataService } from '@/lib/services/main-data.service';
-import { formatDate } from '@/lib/utils/formatters';
+import { formatDate, getLocalDateString } from '@/lib/utils/formatters';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { examSchema, type ExamFormData } from '@/schemas';
@@ -157,7 +157,7 @@ export default function ExamsPage() {
   }, [searchRoll, examRoutines]);
 
   // Combined upcoming list for countdown tab
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
   const upcomingRoutineExams = useMemo(() => {
     return examRoutines
       .filter((r) => r.date >= today)

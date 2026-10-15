@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useProfile } from '@/lib/hooks/useProfile';
 import { feeService, type FeeSummary } from '@/lib/services/fee.service';
 import { FEE_TYPE_LABELS, FEE_TYPES } from '@/lib/constants';
-import { formatCurrency, formatDate } from '@/lib/utils/formatters';
+import { formatCurrency, formatDate, getLocalDateString } from '@/lib/utils/formatters';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { feeSchema, paymentSchema, type FeeFormData, type PaymentFormData } from '@/schemas/fee';
@@ -675,7 +675,7 @@ function PaymentForm({
     defaultValues: {
       feeId: initialFeeId,
       amount: initialDue > 0 ? initialDue : preselectedFee?.amount || 0,
-      date: new Date().toISOString().split('T')[0],
+      date: getLocalDateString(),
       method: 'bKash',
       note: preselectedFee ? `Payment for ${FEE_TYPE_LABELS[preselectedFee.type]}` : '',
     },

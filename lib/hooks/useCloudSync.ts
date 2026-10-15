@@ -44,6 +44,8 @@ export function useCloudSync() {
       database.fees, database.payments, database.routine,
       database.assignments, database.exams, database.notes,
       database.settings, database.projects,
+      database.examRoutines, database.studentResults, database.scholarshipConfig,
+      database.personalRoutines, database.routineActivities, database.dailyChecklist,
     ];
 
     // Dexie fires hook events when tables are modified

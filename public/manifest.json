@@ -1,7 +1,7 @@
 {
-  "name": "DCC CSE",
-  "short_name": "DCC CSE",
-  "description": "Student utility application for Dhaka City College CSE students. Track attendance, GPA, fees, and more.",
+  "name": "DCC CSE 25 - Dhaka City College CSE Batch 25",
+  "short_name": "DCC CSE 25",
+  "description": "Student academic management portal & routine dashboard for Dhaka City College CSE Batch 25 (CSE DCC 25). Track routines, attendance, GPA, fees, and more.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#090d16",

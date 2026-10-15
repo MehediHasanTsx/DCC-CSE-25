@@ -61,14 +61,35 @@ export function round(value: number, decimals: number = 2): number {
 }
 
 /**
- * Get today's date as YYYY-MM-DD.
+ * Get a Date object formatted as YYYY-MM-DD in local time without UTC offset skewing.
  */
-export function todayISO(): string {
-  return new Date().toISOString().split('T')[0];
+export function getLocalDateString(d: Date = new Date()): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 /**
- * Get current day of week.
+ * Parse a YYYY-MM-DD date string into a local Date object (at 00:00:00 local time).
+ */
+export function parseLocalDate(dateStr: string): Date {
+  const parts = dateStr.split('-');
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1;
+  const day = parseInt(parts[2], 10);
+  return new Date(year, month, day);
+}
+
+/**
+ * Get today's date as YYYY-MM-DD in local timezone.
+ */
+export function todayISO(): string {
+  return getLocalDateString(new Date());
+}
+
+/**
+ * Get current day of week in local timezone.
  */
 export function getCurrentDay(): string {
   return new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();

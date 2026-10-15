@@ -12,7 +12,7 @@ import { mainDataService } from '@/lib/services/main-data.service';
 import { feeService, type FeeSummary } from '@/lib/services/fee.service';
 import { routineService } from '@/lib/services/routine.service';
 import { personalRoutineService, getCategoryMeta } from '@/lib/services/personal-routine.service';
-import { formatCurrency, formatDate, formatTime, getCurrentDay } from '@/lib/utils/formatters';
+import { formatCurrency, formatDate, formatTime, getCurrentDay, getLocalDateString } from '@/lib/utils/formatters';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -105,7 +105,7 @@ export default function DashboardPage() {
           // Continue with local data if offline or cloud unavailable
         }
 
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = getLocalDateString();
 
         const [cgpaResult, assignments, allExamRoutines, fees, payments, routine, checklist] = await Promise.all([
           gpaService.calculateCgpa(),
@@ -156,7 +156,7 @@ export default function DashboardPage() {
   const handleToggleChecklist = async (activityId: string, routineId: string) => {
     try {
       setTogglingActivityId(activityId);
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDateString();
       await personalRoutineService.toggleActivity(todayStr, activityId, routineId);
       const updated = await personalRoutineService.getChecklistForDate(todayStr);
       setTodayChecklist(updated);
@@ -239,7 +239,7 @@ export default function DashboardPage() {
                     !records.some(
                       (r) =>
                         r.subjectId === slot.subjectId &&
-                        r.date === new Date().toISOString().split('T')[0]
+                        r.date === getLocalDateString()
                     )
                 ) && (
                   <Button
@@ -247,7 +247,7 @@ export default function DashboardPage() {
                     size="sm"
                     className="text-xs h-7 gap-1 border-emerald-500/40 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
                     onClick={async () => {
-                      const todayIso = new Date().toISOString().split('T')[0];
+                      const todayIso = getLocalDateString();
                       const unmarked = filteredTodayClasses
                         .filter(
                           (slot) =>
@@ -322,7 +322,7 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-3">
                 {filteredTodayClasses.map((slot) => {
-                  const todayIso = new Date().toISOString().split('T')[0];
+                  const todayIso = getLocalDateString();
                   const att = records.find(
                     (r) => r.subjectId === slot.subjectId && r.date === todayIso
                   );
@@ -521,7 +521,7 @@ export default function DashboardPage() {
             </DialogTitle>
             <DialogDescription>
               Mark attendance for today&apos;s classes (
-              {formatDate(new Date().toISOString().split('T')[0], {
+              {formatDate(getLocalDateString(), {
                 weekday: 'short',
                 month: 'short',
                 day: 'numeric',
@@ -543,7 +543,7 @@ export default function DashboardPage() {
                     variant="outline"
                     className="text-xs h-8 gap-1.5 border-emerald-500/40 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
                     onClick={async () => {
-                      const todayIso = new Date().toISOString().split('T')[0];
+                      const todayIso = getLocalDateString();
                       const recordsToMark = todayClasses.map((s) => ({
                         subjectId: s.subjectId,
                         status: 'present' as AttendanceStatus,
@@ -563,7 +563,7 @@ export default function DashboardPage() {
 
                 <div className="space-y-2 max-h-75 overflow-y-auto pr-1">
                   {todayClasses.map((slot) => {
-                    const todayIso = new Date().toISOString().split('T')[0];
+                    const todayIso = getLocalDateString();
                     const att = records.find(
                       (r) => r.subjectId === slot.subjectId && r.date === todayIso
                     );
@@ -855,8 +855,8 @@ function TodayChecklistCard({
   onToggle: (activityId: string, routineId: string) => void;
   togglingId: string | null;
 }) {
+  const todayStr = getLocalDateString();
   const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
 
   return (
     <Card className="flex flex-col">

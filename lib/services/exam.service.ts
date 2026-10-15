@@ -1,5 +1,5 @@
 import { db } from '@/lib/db/database';
-import { generateId } from '@/lib/utils/formatters';
+import { generateId, getLocalDateString } from '@/lib/utils/formatters';
 import type { Exam } from '@/types/database';
 
 export const examService = {
@@ -8,7 +8,7 @@ export const examService = {
   },
 
   async getUpcoming(semesterId: string): Promise<Exam[]> {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     return db().exams
       .where('semesterId')
       .equals(semesterId)

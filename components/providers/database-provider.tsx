@@ -108,6 +108,11 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
         if (cancelled) return;
         // After seeding, restore all data from cloud if local is empty
         await restoreFromCloud();
+        try {
+          await cloudSyncService.smartSync();
+        } catch (syncErr) {
+          console.warn('Initial cloud sync check:', syncErr);
+        }
         if (!cancelled) {
           setIsReady(true);
           setError(null);

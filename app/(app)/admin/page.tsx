@@ -6,7 +6,7 @@ import { useAuth } from '@/components/providers/auth-provider';
 import { mainDataService } from '@/lib/services/main-data.service';
 import type { Subject, RoutineSlot, Assignment, AssignmentPriority, DayOfWeek, SubjectType, ExamRoutineItem, LabGroup, SectionConfig, SeatPlanRange, ExamType } from '@/types/database';
 import { DAYS_OF_WEEK, DAY_LABELS, SEMESTER_COUNT, DEFAULT_LAB_GROUPS, DEFAULT_SECTIONS, DEFAULT_5TH_SEMESTER_EXAM_ROUTINE } from '@/lib/constants';
-import { formatTime, generateId } from '@/lib/utils/formatters';
+import { formatTime, generateId, getLocalDateString } from '@/lib/utils/formatters';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -179,7 +179,7 @@ export default function AdminPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `dcc-cse-main-data-sem${selectedSemester}-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `dcc-cse-main-data-sem${selectedSemester}-${getLocalDateString()}.json`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success('Downloaded Main Data JSON backup.');
