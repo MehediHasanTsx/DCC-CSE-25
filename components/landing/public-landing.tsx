@@ -20,14 +20,14 @@ export function DccCse25Landing() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20">
       {/* Navigation Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm transition-transform group-hover:scale-105">
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <span className="text-lg font-bold tracking-tight block leading-none">DCC CSE 25</span>
+              <span className="text-lg font-bold tracking-tight block leading-none">DCC CSE</span>
               <span className="text-[10px] text-muted-foreground font-medium">Dhaka City College</span>
             </div>
           </Link>
@@ -56,23 +56,23 @@ export function DccCse25Landing() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-16 pb-20 md:pt-24 md:pb-28 border-b border-border/40">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
         <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center relative">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1 text-xs font-semibold text-primary mb-6 animate-fade-in">
             <span className="flex h-1.5 w-1.5 rounded-full bg-primary" />
-            Dhaka City College • Science & Engineering (Batch 25)
+            Dhaka City College • Department of Computer Science & Engineering
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.15] mb-6">
-            DCC CSE 25
+            DCC CSE
             <span className="block text-xl sm:text-3xl lg:text-4xl font-semibold text-muted-foreground mt-2">
               Dhaka City College Science & Engineering Student Portal
             </span>
           </h1>
 
           <p className="mx-auto max-w-2xl text-base sm:text-lg text-muted-foreground leading-relaxed mb-8">
-            The dedicated academic dashboard and routine planner built for students of
-            Dhaka City College Department of Computer Science & Engineering (Batch 25).
+            The dedicated academic dashboard and routine planner built for all students of
+            Dhaka City College Department of Computer Science & Engineering.
             Track daily class schedules, National University CGPA, attendance thresholds,
             exam seat plans, and semester resources with offline-first cloud sync.
           </p>
@@ -100,8 +100,8 @@ export function DccCse25Landing() {
               <p className="text-xs text-muted-foreground">4.00 Grade calculation</p>
             </div>
             <div className="p-3 rounded-lg bg-muted/40 border border-border/40 text-center">
-              <p className="text-sm font-semibold">5th Semester</p>
-              <p className="text-xs text-muted-foreground">Sections A & B Routines</p>
+              <p className="text-sm font-semibold">All Semesters</p>
+              <p className="text-xs text-muted-foreground">Class & Lab Routines</p>
             </div>
             <div className="p-3 rounded-lg bg-muted/40 border border-border/40 text-center">
               <p className="text-sm font-semibold">Seat Plan Search</p>
@@ -116,7 +116,7 @@ export function DccCse25Landing() {
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3">
-              Comprehensive Academic Management for DCC CSE 25
+              Comprehensive Academic Management for DCC CSE Students
             </h2>
             <p className="text-muted-foreground text-sm sm:text-base">
               Everything Dhaka City College Computer Science & Engineering students need to manage coursework, exams, and attendance in one place.
@@ -131,7 +131,7 @@ export function DccCse25Landing() {
                 </div>
                 <CardTitle className="text-lg">Class Routine & Routine Planner</CardTitle>
                 <CardDescription>
-                  Full 5th semester class schedules for Section A and Section B, lab group rotations (A1, A2, B1, B2), and personal daily task checklists.
+                  Semester class schedules for Section A and Section B, lab group rotations, and personal daily task checklists.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -179,7 +179,7 @@ export function DccCse25Landing() {
                 </div>
                 <CardTitle className="text-lg">DCC CSE Notes & Resources</CardTitle>
                 <CardDescription>
-                  Lecture notes, subject syllabi, assignments, and study materials curated for Dhaka City College CSE Batch 25 curriculum.
+                  Lecture notes, subject syllabi, assignments, and study materials curated for Dhaka City College CSE coursework.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -211,12 +211,12 @@ export function DccCse25Landing() {
                 Stay Organized for Every Dhaka City College CSE Class
               </h2>
               <p className="text-muted-foreground text-sm sm:text-base leading-relaxed mb-6">
-                Never miss a lecture or practical session. The DCC CSE 25 routine planner automatically loads your section&apos;s schedule (Sunday through Thursday), lab groups, and teachers, alongside your personalized study habit checklist.
+                Never miss a lecture or practical session. The DCC CSE routine planner automatically loads your section&apos;s schedule (Sunday through Thursday), lab groups, and teachers, alongside your personalized study habit checklist.
               </p>
               <ul className="space-y-3 text-sm text-muted-foreground mb-8">
                 <li className="flex items-start gap-2.5">
                   <div className="h-5 w-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">✓</div>
-                  <span>Pre-configured 5th semester class routines with room numbers</span>
+                  <span>Pre-configured class schedules with room numbers & teacher assignments</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <div className="h-5 w-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">✓</div>
@@ -238,7 +238,7 @@ export function DccCse25Landing() {
               <div className="flex items-center justify-between pb-3 border-b border-border/60">
                 <div className="flex items-center gap-2">
                   <GraduationCap className="h-5 w-5 text-primary" />
-                  <span className="font-semibold text-sm">DCC CSE 25 • 5th Semester</span>
+                  <span className="font-semibold text-sm">DCC CSE • Academic Schedule</span>
                 </div>
                 <Badge variant="secondary" className="text-xs">Sections A & B</Badge>
               </div>
@@ -311,7 +311,7 @@ export function DccCse25Landing() {
         <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3">
-              Frequently Asked Questions about DCC CSE 25
+              Frequently Asked Questions about DCC CSE
             </h2>
             <p className="text-muted-foreground text-sm">
               Answers regarding Dhaka City College Science and Engineering resources and student portal usage.
@@ -321,9 +321,18 @@ export function DccCse25Landing() {
           <div className="space-y-4">
             <Card className="border-border/60">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold">What is DCC CSE 25?</CardTitle>
+                <CardTitle className="text-base font-semibold">What is DCC CSE?</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground leading-relaxed pt-1">
-                  DCC CSE 25 is an academic management web application and utility portal built specifically for the students of Dhaka City College Department of Computer Science & Engineering (Batch 25). It centralizes class routines, attendance tracking, CGPA calculations, exam seat plans, and study notes.
+                  DCC CSE is an academic management web application and utility portal built for students across all batches and semesters of Dhaka City College Department of Computer Science & Engineering. It centralizes class routines, attendance tracking, CGPA calculations, exam seat plans, and study notes.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-border/60">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-semibold">Who can use this portal?</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground leading-relaxed pt-1">
+                  The portal is designed for all Dhaka City College Computer Science & Engineering students across any semester (Semester 1 through 8). Any DCC CSE student can create a free account to manage their coursework.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -341,16 +350,16 @@ export function DccCse25Landing() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold">How does the National University CGPA calculator work?</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground leading-relaxed pt-1">
-                  The calculator uses the official National University Bangladesh 4.00 grading scale. You can enter course credits and earned letter grades to compute exact semester SGPA and cumulative CGPA.
+                  The calculator uses the official National University Bangladesh 4.00 grading scale. You can enter course credits and earned letter grades to compute exact semester SGPA and cumulative CGPA across all completed semesters.
                 </CardDescription>
               </CardHeader>
             </Card>
 
             <Card className="border-border/60">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold">Is DCC CSE 25 an official Dhaka City College website?</CardTitle>
+                <CardTitle className="text-base font-semibold">Who developed DCC CSE?</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground leading-relaxed pt-1">
-                  DCC CSE 25 is an independent, open-source student-built academic companion for the Dhaka City College CSE Batch 25 community to help fellow students organize their academic life. For institutional college notices, please refer to the official Dhaka City College administration website.
+                  DCC CSE was developed by Mehedi Hasan, a student of DCC CSE Batch 25, as an open-source academic companion to help all Dhaka City College CSE students organize their daily academic lives.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -365,7 +374,7 @@ export function DccCse25Landing() {
             Ready to Manage Your Academic Journey?
           </h2>
           <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto mb-8">
-            Access your Dhaka City College CSE 25 routine, track attendance, and plan your study schedule today.
+            Access your Dhaka City College CSE routine, track attendance, and plan your study schedule today.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link href="/register" className="w-full sm:w-auto">
@@ -389,7 +398,7 @@ export function DccCse25Landing() {
             <div className="text-center md:text-left">
               <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
                 <GraduationCap className="h-4 w-4 text-primary" />
-                <span className="font-bold text-sm tracking-tight">DCC CSE 25</span>
+                <span className="font-bold text-sm tracking-tight">DCC CSE</span>
               </div>
               <p className="text-xs text-muted-foreground">
                 Dhaka City College Science & Engineering • Student Academic Portal
@@ -399,13 +408,13 @@ export function DccCse25Landing() {
             <div className="flex items-center gap-6 text-xs text-muted-foreground">
               <Link href="/login" className="hover:text-foreground transition-colors">Sign In</Link>
               <Link href="/register" className="hover:text-foreground transition-colors">Register</Link>
-              <Link href="/forgot-password" className="hover:text-foreground transition-colors">Reset Password</Link>
+              <Link href="/disclaimer" className="hover:text-foreground transition-colors">Disclaimer & Terms</Link>
             </div>
           </div>
 
           <div className="mt-8 pt-6 border-t border-border/40 text-center text-xs text-muted-foreground/80 space-y-1">
             <p>
-              Built by{' '}
+              Built with ❤️ by{' '}
               <a
                 href="https://api.whatsapp.com/send/?phone=8801521743944"
                 target="_blank"
@@ -414,10 +423,10 @@ export function DccCse25Landing() {
               >
                 Mehedi Hasan
               </a>{' '}
-              for Dhaka City College CSE Batch 25.
+              (Batch 25) for all Dhaka City College CSE students.
             </p>
             <p className="text-[11px] text-muted-foreground/60">
-              DCC CSE 25 is an independent student academic resource companion.
+              DCC CSE is an independent open-source student academic resource companion. Not affiliated with Dhaka City College or National University.
             </p>
           </div>
         </div>

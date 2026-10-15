@@ -24,48 +24,47 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://dcc-cse-25.vercel.ap
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "DCC CSE 25 | Dhaka City College Science & Engineering",
-    template: "%s | DCC CSE 25",
+    default: "DCC CSE | Dhaka City College Science & Engineering Student Portal",
+    template: "%s | DCC CSE",
   },
   description:
-    "DCC CSE 25 is an academic management companion and resource portal for Dhaka City College Science and Engineering (CSE Batch 25) students. Track class routines, NU CGPA, attendance, exam schedules, seat plans, and study resources.",
+    "DCC CSE is the comprehensive student academic dashboard and resource portal for all Dhaka City College Science and Engineering (CSE) students. Track class schedules, National University CGPA, attendance, exam routines, seat plans, and study notes.",
   manifest: "/manifest.json",
   keywords: [
-    "DCC CSE 25",
     "DCC CSE",
     "Dhaka City College Science and Engineering",
     "Dhaka City College CSE",
     "DCC CSE notes",
     "DCC CSE resources",
-    "DCC CSE 25 student resources",
-    "Dhaka City College CSE Batch 25",
+    "DCC CSE 25",
+    "DCC CSE student resources",
     "DCC CSE routine",
     "DCC CSE syllabus",
     "NU CGPA calculator",
     "student academic dashboard",
     "attendance tracker",
   ],
-  authors: [{ name: "DCC CSE Batch 25 Students" }],
-  creator: "DCC CSE 25",
-  publisher: "DCC CSE 25",
-  applicationName: "DCC CSE 25",
+  authors: [{ name: "Mehedi Hasan (Batch 25)" }],
+  creator: "Mehedi Hasan (DCC CSE Batch 25)",
+  publisher: "DCC CSE",
+  applicationName: "DCC CSE",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "DCC CSE 25 | Dhaka City College Science & Engineering",
+    title: "DCC CSE | Dhaka City College Science & Engineering Student Portal",
     description:
-      "Academic management companion and resource portal for Dhaka City College Science and Engineering (CSE Batch 25) students. Track routines, attendance, CGPA, exam seat plans, and study notes.",
+      "Academic management companion and resource portal for all Dhaka City College Science and Engineering (CSE) students. Track routines, attendance, CGPA, exam seat plans, and study notes.",
     url: APP_URL,
-    siteName: "DCC CSE 25",
+    siteName: "DCC CSE",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "DCC CSE 25 | Dhaka City College Science & Engineering",
+    title: "DCC CSE | Dhaka City College Science & Engineering Student Portal",
     description:
-      "Academic management companion and resource portal for Dhaka City College Science and Engineering (CSE Batch 25) students.",
+      "Academic management companion and resource portal for all Dhaka City College Science and Engineering (CSE) students.",
   },
   robots: {
     index: true,
@@ -99,21 +98,21 @@ const jsonLd = {
     {
       "@type": "WebApplication",
       "@id": `${APP_URL}/#webapp`,
-      "name": "DCC CSE 25 | Dhaka City College Science & Engineering",
+      "name": "DCC CSE | Dhaka City College Science & Engineering Student Portal",
       "alternateName": [
-        "DCC CSE 25",
         "DCC CSE",
         "Dhaka City College Science and Engineering",
         "Dhaka City College CSE",
+        "DCC CSE 25",
         "DCC CSE notes",
         "DCC CSE resources",
-        "DCC CSE 25 student resources"
+        "DCC CSE student resources"
       ],
       "url": `${APP_URL}/`,
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "All",
       "description":
-        "An academic management companion and resource hub for Dhaka City College Science and Engineering (CSE Batch 25) students. Features include routine planning, attendance tracking, NU CGPA calculations, exam seat plans, and course notes.",
+        "An academic management companion and resource hub for all Dhaka City College Science and Engineering (CSE) students. Features include routine planning, attendance tracking, NU CGPA calculations, exam seat plans, and course notes.",
       "browserRequirements": "Requires JavaScript. Requires HTML5.",
       "offers": {
         "@type": "Offer",

@@ -134,9 +134,9 @@ export default function RegisterPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary">
             <GraduationCap className="h-7 w-7 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">DCC CSE 25</h1>
+          <h1 className="text-2xl font-bold tracking-tight">DCC CSE</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Join Dhaka City College CSE Batch 25 Academic Portal
+            Join Dhaka City College Science & Engineering Student Portal
           </p>
         </div>
 
@@ -297,11 +297,24 @@ export default function RegisterPage() {
           </CardContent>
         </Card>
 
-        <p className="mt-6 text-center text-[0.65rem] text-muted-foreground/50">
-          Built by{' '}
-          <a href="https://api.whatsapp.com/send/?phone=8801521743944&text&type=phone_number&app_absent=0" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-muted-foreground transition-colors">
+        <div className="mt-4 rounded-lg border border-border/80 bg-muted/40 p-3 text-center text-xs text-muted-foreground space-y-1">
+          <p className="font-medium text-foreground">🛡️ Independent Student Project</p>
+          <p className="text-[11px] leading-tight">
+            Please use a unique password. Do not reuse your official college or banking credentials.
+          </p>
+          <p className="text-[10px] pt-0.5">
+            <Link href="/disclaimer" className="underline hover:text-foreground">
+              Read Disclaimer & Terms of Use
+            </Link>
+          </p>
+        </div>
+
+        <p className="mt-4 text-center text-[0.65rem] text-muted-foreground/50">
+          Built with ❤️ by{' '}
+          <a href="https://api.whatsapp.com/send/?phone=8801521743944" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-muted-foreground transition-colors">
             Mehedi Hasan
-          </a>
+          </a>{' '}
+          (Batch 25)
         </p>
       </div>
 

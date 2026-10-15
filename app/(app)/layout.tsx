@@ -12,6 +12,24 @@ function useIsMounted() {
   return useSyncExternalStore(emptySubscribe, () => true, () => false);
 }
 
+const ROUTE_TITLES: Record<string, string> = {
+  '/': 'Dashboard',
+  '/attendance': 'Attendance',
+  '/routine': 'Routine',
+  '/planner': 'Routine Planner',
+  '/exams': 'Exam Routine & Seat Plan',
+  '/fees': 'Fees & Payments',
+  '/gpa': 'CGPA Calculator',
+  '/results': 'Results & Scholarship',
+  '/subjects': 'Subjects & Syllabus',
+  '/assignments': 'Assignments',
+  '/notes': 'Notes',
+  '/analytics': 'Analytics',
+  '/lab-projects': 'Lab Projects',
+  '/settings': 'Settings',
+  '/admin': 'Admin Controls',
+};
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -21,6 +39,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isMounted = useIsMounted();
 
   const isPublicHome = pathname === '/';
+
+  // Update document title for authenticated app routes
+  useEffect(() => {
+    if (isAuthenticated) {
+      const pageTitle = ROUTE_TITLES[pathname] || 'Dashboard';
+      document.title = `${pageTitle} | DCC CSE`;
+    }
+  }, [pathname, isAuthenticated]);
 
   useEffect(() => {
     if (!isMounted || authLoading) return;
