@@ -5,8 +5,25 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      allow: '/',
-      disallow: ['/api/'],
+      allow: ['/', '/login', '/register', '/forgot-password'],
+      disallow: [
+        '/api/',
+        '/admin/',
+        '/attendance/',
+        '/planner/',
+        '/exams/',
+        '/fees/',
+        '/gpa/',
+        '/results/',
+        '/routine/',
+        '/subjects/',
+        '/assignments/',
+        '/notes/',
+        '/analytics/',
+        '/lab-projects/',
+        '/settings/',
+        '/onboarding/',
+      ],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
   };

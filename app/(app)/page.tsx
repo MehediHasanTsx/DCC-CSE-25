@@ -46,10 +46,27 @@ import {
   Circle,
   Plus,
 } from 'lucide-react';
+import { useAuth } from '@/components/providers/auth-provider';
+import { DccCse25Landing } from '@/components/landing/public-landing';
 import { toast } from 'sonner';
 import type { Assignment, ExamRoutineItem, RoutineSlot, Subject, DayOfWeek, AttendanceStatus, RoutineActivity } from '@/types/database';
 
 export default function DashboardPage() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // For unauthenticated visitors and crawlers (including SSR), render the SEO-rich public landing page
+  if (!isAuthenticated && !isLoading) {
+    return <DccCse25Landing />;
+  }
+
+  if (!isAuthenticated) {
+    return <DccCse25Landing />;
+  }
+
+  return <StudentDashboardContent />;
+}
+
+function StudentDashboardContent() {
   const { profile } = useProfile();
   const semesterId = profile ? `semester-${profile.currentSemester}` : undefined;
   const { overallStats, targetInfo, records, markAttendance, bulkMark } = useAttendance(semesterId);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useDatabaseReady } from '@/components/providers/database-provider';
 import { profileService } from '@/lib/services/profile.service';
@@ -14,16 +14,21 @@ function useIsMounted() {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { isReady: dbReady } = useDatabaseReady();
   const [ready, setReady] = useState(false);
   const isMounted = useIsMounted();
 
+  const isPublicHome = pathname === '/';
+
   useEffect(() => {
     if (!isMounted || authLoading) return;
 
     if (!isAuthenticated) {
-      router.replace('/login');
+      if (!isPublicHome) {
+        router.replace('/login');
+      }
       return;
     }
 
@@ -37,10 +42,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         setReady(true);
       }
     });
-  }, [router, authLoading, isAuthenticated, isMounted, dbReady]);
+  }, [router, authLoading, isAuthenticated, isMounted, dbReady, isPublicHome]);
 
-  // During SSR / hydration, render children to avoid mismatch
-  if (!isMounted) {
+  // During SSR / hydration or unauthenticated public homepage, render children directly
+  if (!isMounted || (isPublicHome && !isAuthenticated)) {
     return <>{children}</>;
   }
 
