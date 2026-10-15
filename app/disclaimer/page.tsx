@@ -21,7 +21,7 @@ export default function DisclaimerPage() {
             <span className="text-xl font-bold tracking-tight">DCC CSE</span>
           </Link>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Institutional Disclaimer & Terms of Use
+            Institutional Disclaimer &amp; Terms of Use
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
             Last Updated: October 2026 • Please read carefully before using this application.
@@ -136,11 +136,11 @@ export default function DisclaimerPage() {
         {/* Back Link */}
         <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
           <Link href="/" className="inline-flex items-center gap-1.5 text-primary hover:underline font-medium">
-            <ArrowLeft className="h-3.5 w-3.5" /> Back to Homepage
+            <ArrowLeft className="h-3.5 w-3.5" /> Back to Application / Dashboard
           </Link>
           <div className="flex items-center gap-4">
+            <Link href="/" className="hover:text-foreground">Home</Link>
             <Link href="/login" className="hover:text-foreground">Sign In</Link>
-            <Link href="/register" className="hover:text-foreground">Register</Link>
           </div>
         </div>
       </div>
