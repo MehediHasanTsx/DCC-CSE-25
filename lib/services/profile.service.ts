@@ -4,6 +4,12 @@ import type { Profile } from '@/types/database';
 
 const PROFILE_ID = 'student-profile';
 
+function emitProfileChange() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dcc:profile-updated'));
+  }
+}
+
 export const profileService = {
   /**
    * Get the student profile. Returns null if no profile exists.
@@ -33,6 +39,7 @@ export const profileService = {
       updatedAt: now,
     };
     await db().profile.add(profile);
+    emitProfileChange();
     return profile;
   },
 
@@ -44,6 +51,7 @@ export const profileService = {
       ...data,
       updatedAt: new Date(),
     });
+    emitProfileChange();
   },
 
   /**
@@ -54,6 +62,7 @@ export const profileService = {
       currentSemester: semester,
       updatedAt: new Date(),
     });
+    emitProfileChange();
   },
 
   /**
@@ -64,6 +73,7 @@ export const profileService = {
       profilePicture: dataUrl,
       updatedAt: new Date(),
     });
+    emitProfileChange();
   },
 
   /**
@@ -74,5 +84,6 @@ export const profileService = {
       profilePicture: undefined,
       updatedAt: new Date(),
     });
+    emitProfileChange();
   },
 };

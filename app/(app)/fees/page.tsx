@@ -11,6 +11,7 @@ import { feeSchema, paymentSchema, type FeeFormData, type PaymentFormData } from
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CountUp } from '@/components/ui/count-up';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -146,7 +147,7 @@ export default function FeesPage() {
   const pendingFees = fees.filter((f) => f.status !== 'paid');
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Fees & Payments</h1>
         <p className="text-sm text-muted-foreground">
@@ -156,29 +157,31 @@ export default function FeesPage() {
 
       {/* Clear Financial Summary Cards */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <Card className="border-border/70">
+        <Card className="border-border/70 animate-slide-fade-up stagger-1">
           <CardContent className="p-4">
             <p className="text-xs font-medium text-muted-foreground mb-1">Total Fees</p>
-            <p className="text-2xl font-bold">{formatCurrency(summary?.totalFees || 0)}</p>
+            <p className="text-xl sm:text-2xl font-semibold text-foreground">
+              <CountUp value={formatCurrency(summary?.totalFees || 0)} />
+            </p>
             <p className="text-[0.7rem] text-muted-foreground mt-1">All charges for this semester</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border/70">
+        <Card className="border-border/70 animate-slide-fade-up stagger-2">
           <CardContent className="p-4">
             <p className="text-xs font-medium text-muted-foreground mb-1">Total Paid</p>
-            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-              {formatCurrency(summary?.totalPaid || 0)}
+            <p className="text-xl sm:text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
+              <CountUp value={formatCurrency(summary?.totalPaid || 0)} />
             </p>
             <p className="text-[0.7rem] text-muted-foreground mt-1">{summary?.paidFeesCount || 0} fee(s) fully cleared</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border/70">
+        <Card className="border-border/70 animate-slide-fade-up stagger-3">
           <CardContent className="p-4">
             <p className="text-xs font-medium text-muted-foreground mb-1">Remaining Due</p>
-            <p className={`text-2xl font-bold ${(summary?.remainingDue || 0) > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-              {formatCurrency(summary?.remainingDue || 0)}
+            <p className={`text-xl sm:text-2xl font-semibold ${(summary?.remainingDue || 0) > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+              <CountUp value={formatCurrency(summary?.remainingDue || 0)} />
             </p>
             <p className="text-[0.7rem] text-muted-foreground mt-1">
               {(summary?.remainingDue || 0) > 0 ? 'Amount pending to be paid' : 'All cleared! No dues ✅'}
@@ -186,7 +189,7 @@ export default function FeesPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70">
+        <Card className="border-border/70 animate-slide-fade-up stagger-4">
           <CardContent className="p-4">
             <p className="text-xs font-medium text-muted-foreground mb-1">Payment Status</p>
             <div className="flex items-center gap-1.5 mt-1">

@@ -195,9 +195,9 @@ export default function RoutinePage() {
   if (!profile) return null;
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* ── Official Notice Header Replica ── */}
-      <div className="rounded-2xl border border-primary/20 bg-linear-to-br from-card via-card to-primary/5 p-5 md:p-6 shadow-sm space-y-4">
+      <div className="rounded-xl border border-primary/20 bg-linear-to-br from-card via-card to-primary/5 p-5 md:p-6 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
@@ -557,7 +557,7 @@ export default function RoutinePage() {
       </div>
 
       {/* ── Official Subject & Faculty Legend (from attached notice) ── */}
-      <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm space-y-0">
+      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs space-y-0">
         <div className="p-4 border-b border-border bg-muted/20 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-primary" />

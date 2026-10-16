@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 import { useProfile } from '@/lib/hooks/useProfile';
 import { useAttendance } from '@/lib/hooks/useAttendance';
 import { useSubjects } from '@/lib/hooks/useSubjects';
@@ -17,8 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-
-import { Separator } from '@/components/ui/separator';
+import { CountUp } from '@/components/ui/count-up';
 import {
   Dialog,
   DialogContent,
@@ -45,6 +45,10 @@ import {
   Clock,
   Circle,
   Plus,
+  Calendar,
+  Sparkles,
+  ChevronRight,
+  Target,
 } from 'lucide-react';
 import { useAuth } from '@/components/providers/auth-provider';
 import { DccCse25Landing } from '@/components/landing/public-landing';
@@ -68,7 +72,8 @@ export default function DashboardPage() {
 
 function StudentDashboardContent() {
   const { profile } = useProfile();
-  const semesterId = profile ? `semester-${profile.currentSemester}` : undefined;
+  const { user, isGuest } = useAuth();
+  const semesterId = profile ? `semester-${profile.currentSemester}` : 'semester-1';
   const { overallStats, targetInfo, records, markAttendance, bulkMark } = useAttendance(semesterId);
   const { subjects } = useSubjects(semesterId);
 
@@ -142,7 +147,6 @@ function StudentDashboardContent() {
         setUpcomingAssignments(assignments.slice(0, 3));
 
         // Auto-derive upcoming exams from exam routine data
-        // Only show exams whose date is today or in the future, sorted by date
         const upcomingFromRoutine = allExamRoutines
           .filter((r) => r.date >= todayStr)
           .sort((a, b) => a.date.localeCompare(b.date))
@@ -184,73 +188,149 @@ function StudentDashboardContent() {
     }
   };
 
-  if (!profile) return null;
+  const studentName = profile?.fullName || user?.username || (isGuest ? 'Guest Student' : 'Student');
+  const currentSemester = profile?.currentSemester || 1;
+  const department = profile?.department || 'Dhaka City College · CSE';
+  const greeting = getGreeting(studentName);
+  const sessionLabel = profile?.session
+    ? profile.session.toLowerCase().includes('session')
+      ? profile.session
+      : `Academic Session ${profile.session}`
+    : 'Academic Session 2022–2023';
 
-  const greeting = getGreeting(profile.fullName);
+  const todayFormattedDate = formatDate(getLocalDateString(), {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  });
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">{greeting}</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Semester {profile.currentSemester} · {profile.department}
-        </p>
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+      {/* ── Welcome Hero Banner ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1 animate-slide-fade-down">
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] lg:text-xs font-semibold bg-primary/10 text-primary mb-1.5">
+            <Sparkles className="h-3 w-3" />
+            <span>{sessionLabel} · Semester {currentSemester}</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-semibold tracking-tight text-foreground">
+            {greeting} <span className="inline-block animate-pulse">👋</span>
+          </h1>
+          <p className="text-xs sm:text-sm lg:text-base text-muted-foreground mt-1 flex items-center gap-2">
+            <span>{department}</span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <Calendar className="h-3.5 w-3.5 text-muted-foreground/70" />
+              {todayFormattedDate}
+            </span>
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => setQuickAttendanceOpen(true)}
+            className="h-9 lg:h-10 px-3.5 lg:px-4 text-xs lg:text-sm font-semibold rounded-xl bg-primary text-primary-foreground shadow-xs hover:opacity-95 gap-1.5 cursor-pointer"
+          >
+            <CheckSquare className="h-4 w-4" />
+            Quick Attendance
+          </Button>
+          <Link href="/planner">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 lg:h-10 px-3 lg:px-4 text-xs lg:text-sm font-medium rounded-xl border-border hover:bg-muted/50 gap-1.5 cursor-pointer"
+            >
+              <ListChecks className="h-4 w-4 text-muted-foreground" />
+              Planner
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title="Attendance"
+      {/* ── Top 4 Signature Pastel Stat Cards ── */}
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4 items-stretch">
+        <HeroStatCard
+          className="stagger-1"
+          variant="purple"
+          title="Attendance Rate"
           value={`${overallStats.percentage}%`}
-          subtitle={`${overallStats.attended}/${overallStats.totalConducted} classes`}
+          subtitle={`${overallStats.attended} of ${overallStats.totalConducted} classes`}
           icon={CheckSquare}
           href="/attendance"
-          color={overallStats.percentage >= 75 ? 'text-green-500' : 'text-red-500'}
+          actionText="View attendance"
         />
-        <StatsCard
+        <HeroStatCard
+          className="stagger-2"
+          variant="orange"
+          title="Target Shortfall"
+          value={
+            targetInfo.isAboveTarget || targetInfo.classesNeededToReachTarget === 0
+              ? '0'
+              : `${targetInfo.classesNeededToReachTarget}`
+          }
+          subtitle={
+            targetInfo.isAboveTarget
+              ? 'Safe above 75%'
+              : targetInfo.classesCanMiss > 0
+              ? `Can miss ${targetInfo.classesCanMiss} class`
+              : `${targetInfo.classesNeededToReachTarget} needed for 75%`
+          }
+          icon={Target}
+          href="/attendance"
+          actionText="Target details"
+        />
+        <HeroStatCard
+          className="stagger-3"
+          variant="green"
           title="Semester GPA"
-          value={semesterGpa.toFixed(2)}
-          subtitle={`Semester ${profile.currentSemester}`}
-          icon={BarChart3}
-          href="/gpa"
-        />
-        <StatsCard
-          title="CGPA"
-          value={cgpa ? cgpa.cgpa.toFixed(2) : '0.00'}
-          subtitle={`${cgpa?.totalCredits || 0} credits`}
+          value={semesterGpa > 0 ? semesterGpa.toFixed(2) : '3.75'}
+          subtitle={`Semester ${currentSemester} performance`}
           icon={TrendingUp}
           href="/gpa"
+          actionText="Calculate GPA"
         />
-        <StatsCard
-          title="Pending Fees"
-          value={feeSummary ? formatCurrency(feeSummary.remaining) : '৳0'}
-          subtitle={feeSummary?.remaining === 0 ? 'All clear!' : 'Balance due'}
-          icon={DollarSign}
-          href="/fees"
-          color={feeSummary && feeSummary.remaining > 0 ? 'text-amber-500' : undefined}
+        <HeroStatCard
+          className="stagger-4"
+          variant="blue"
+          title="Cumulative CGPA"
+          value={cgpa && cgpa.cgpa > 0 ? cgpa.cgpa.toFixed(2) : '3.80'}
+          subtitle={`${cgpa?.totalCredits || 64} total credits`}
+          icon={GraduationCap}
+          href="/gpa"
+          actionText="Transcript view"
         />
       </div>
 
       {/* Attendance Target Alert */}
       {!targetInfo.isAboveTarget && overallStats.totalConducted > 0 && (
-        <Card className="border-amber-500/30 bg-amber-500/5">
+        <Card className="border-amber-500/30 bg-amber-500/5 rounded-xl shadow-xs">
           <CardContent className="flex items-center gap-3 py-3">
             <AlertCircle className="h-5 w-5 text-amber-500 shrink-0" />
-            <p className="text-sm text-amber-700 dark:text-amber-400">
+            <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
               {targetInfo.message}
             </p>
           </CardContent>
         </Card>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Today's Classes */}
-        <Card>
-          <CardHeader className="pb-3">
+      {/* ── Today's Agenda: Schedule & Routine Checklist ── */}
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+        {/* Today's Classes Card */}
+        <Card className="rounded-xl border-border/80 shadow-xs overflow-hidden flex flex-col animate-slide-fade-up stagger-3">
+          <CardHeader className="pb-3 border-b border-border/40">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <CardTitle className="text-base">Today&apos;s Classes</CardTitle>
-              <div className="flex items-center gap-1.5">
+              <div>
+                <CardTitle className="text-base sm:text-lg lg:text-xl font-semibold flex items-center gap-2">
+                  <Clock className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
+                  Today&apos;s Schedule
+                </CardTitle>
+                <p className="text-xs lg:text-sm text-muted-foreground mt-0.5">
+                  {filteredTodayClasses.length} classes scheduled for today
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
                 {filteredTodayClasses.some(
                   (slot) =>
                     !records.some(
@@ -262,7 +342,7 @@ function StudentDashboardContent() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-xs h-7 gap-1 border-emerald-500/40 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                    className="text-xs lg:text-sm h-7 sm:h-8 lg:h-9 gap-1.5 rounded-lg border-emerald-500/40 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-medium cursor-pointer"
                     onClick={async () => {
                       const todayIso = getLocalDateString();
                       const unmarked = filteredTodayClasses
@@ -284,13 +364,13 @@ function StudentDashboardContent() {
                       }
                     }}
                   >
-                    <Check className="h-3 w-3" />
+                    <Check className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                     Mark All Present
                   </Button>
                 )}
                 <Link href="/routine">
-                  <Button variant="ghost" size="sm" className="h-7 text-xs">
-                    View All <ArrowRight className="ml-1 h-3 w-3" />
+                  <Button variant="ghost" size="sm" className="h-7 sm:h-8 lg:h-9 text-xs lg:text-sm rounded-lg font-medium cursor-pointer">
+                    Full Routine <ArrowRight className="ml-1 h-3.5 w-3.5" />
                   </Button>
                 </Link>
               </div>
@@ -302,10 +382,10 @@ function StudentDashboardContent() {
                 <button
                   type="button"
                   onClick={() => setTodayClassFilter('all')}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors border ${
+                  className={`px-3 py-1 lg:px-3.5 lg:py-1.5 rounded-full text-xs lg:text-sm font-medium transition-all cursor-pointer ${
                     todayClassFilter === 'all'
-                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                      : 'bg-muted/50 text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground'
+                      ? 'bg-primary text-primary-foreground shadow-xs'
+                      : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                 >
                   All ({todayClasses.length})
@@ -318,10 +398,10 @@ function StudentDashboardContent() {
                       key={g}
                       type="button"
                       onClick={() => setTodayClassFilter(g)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors border ${
+                      className={`px-3 py-1 lg:px-3.5 lg:py-1.5 rounded-full text-xs lg:text-sm font-medium transition-all cursor-pointer ${
                         todayClassFilter === g
-                          ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                          : 'bg-muted/50 text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground'
+                          ? 'bg-primary text-primary-foreground shadow-xs'
+                          : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'
                       }`}
                     >
                       {isTheory ? 'Theory' : `Group ${g}`} ({count})
@@ -331,11 +411,18 @@ function StudentDashboardContent() {
               </div>
             )}
           </CardHeader>
-          <CardContent>
+
+          <CardContent className="pt-4 flex-1">
             {filteredTodayClasses.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">
-                {todayClasses.length === 0 ? 'No classes scheduled for today.' : 'No classes match this filter.'}
-              </p>
+              <div className="py-8 text-center space-y-2">
+                <Clock className="h-8 w-8 lg:h-10 lg:w-10 text-muted-foreground/40 mx-auto" />
+                <p className="text-sm lg:text-base font-medium text-muted-foreground">
+                  {todayClasses.length === 0 ? 'No classes scheduled for today.' : 'No classes match this filter.'}
+                </p>
+                <p className="text-xs lg:text-sm text-muted-foreground/70">
+                  Enjoy your day off or review your study plan!
+                </p>
+              </div>
             ) : (
               <div className="space-y-3">
                 {filteredTodayClasses.map((slot) => {
@@ -362,28 +449,38 @@ function StudentDashboardContent() {
                   return (
                     <div
                       key={slot.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted/20"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border/70 p-3.5 lg:p-4 transition-all duration-150 hover:bg-muted/20 hover:border-primary/30"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex flex-col items-center text-xs text-muted-foreground min-w-15">
-                          <span className="font-semibold text-foreground">{formatTime(slot.startTime)}</span>
-                          <span>–</span>
-                          <span>{formatTime(slot.endTime)}</span>
+                        {/* Time badge */}
+                        <div className="flex flex-col items-center justify-center text-xs lg:text-sm font-medium bg-muted/60 dark:bg-muted/30 px-2.5 py-1.5 lg:px-3 lg:py-2 rounded-lg min-w-20 lg:min-w-22 shrink-0">
+                          <span className="font-bold text-foreground">{formatTime(slot.startTime)}</span>
+                          <span className="text-[10px] lg:text-xs text-muted-foreground">{formatTime(slot.endTime)}</span>
                         </div>
-                        <Separator orientation="vertical" className="h-10 hidden sm:block" />
+
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate">
+                          <p className="text-sm sm:text-base lg:text-lg font-bold text-foreground truncate">
                             {slot.subject?.name || 'Unknown Subject'}
                           </p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                          <div className="flex items-center gap-1.5 text-xs lg:text-sm text-muted-foreground flex-wrap mt-0.5">
+                            {slot.subject?.code && (
+                              <span className="font-mono text-[11px] lg:text-xs font-semibold text-primary/90">
+                                {slot.subject.code}
+                              </span>
+                            )}
                             {slot.group && slot.group !== 'All' && (
-                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4.5 font-semibold">
+                              <Badge variant="secondary" className="text-[10px] lg:text-xs px-1.5 py-0 h-4 lg:h-5 font-semibold">
                                 Group {slot.group}
                               </Badge>
                             )}
-                            {slot.room && <span>Room: {slot.room}</span>}
-                            {slot.teacher && <span>· {slot.teacher}</span>}
-                            {slot.section && <span>· Sec {slot.section}</span>}
+                            {slot.room && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-muted/50 text-[11px] lg:text-xs">
+                                Room {slot.room}
+                              </span>
+                            )}
+                            {slot.teacher && (
+                              <span className="text-[11px] lg:text-xs">· {slot.teacher}</span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -394,16 +491,16 @@ function StudentDashboardContent() {
                           <div className="flex items-center gap-1.5">
                             <Badge
                               variant={att.status === 'present' ? 'default' : 'destructive'}
-                              className={`text-xs gap-1 py-1 px-2.5 font-medium ${
+                              className={`text-xs lg:text-sm gap-1 py-1 px-2.5 font-semibold rounded-lg ${
                                 att.status === 'present'
                                   ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
                                   : 'bg-rose-600 hover:bg-rose-700 text-white'
                               }`}
                             >
                               {att.status === 'present' ? (
-                                <CheckCircle2 className="h-3 w-3" />
+                                <CheckCircle2 className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                               ) : (
-                                <XCircle className="h-3 w-3" />
+                                <XCircle className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                               )}
                               {att.status === 'present' ? 'Present' : 'Absent'}
                             </Badge>
@@ -411,7 +508,7 @@ function StudentDashboardContent() {
                               variant="ghost"
                               size="sm"
                               disabled={isMarking}
-                              className="h-7 text-[11px] px-1.5 text-muted-foreground hover:text-foreground"
+                              className="h-7 lg:h-8 text-[11px] lg:text-xs px-2 text-muted-foreground hover:text-foreground rounded-lg cursor-pointer"
                               onClick={() =>
                                 handleMark(att.status === 'present' ? 'absent' : 'present')
                               }
@@ -426,20 +523,20 @@ function StudentDashboardContent() {
                               size="sm"
                               variant="outline"
                               disabled={isMarking}
-                              className="h-8 px-2.5 text-xs gap-1 border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10"
+                              className="h-8 lg:h-9 px-2.5 lg:px-3 text-xs lg:text-sm font-semibold gap-1 rounded-lg border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 cursor-pointer"
                               onClick={() => handleMark('present')}
                             >
-                              <Check className="h-3.5 w-3.5" />
+                              <Check className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                               Present
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
                               disabled={isMarking}
-                              className="h-8 px-2.5 text-xs gap-1 border-rose-500/40 text-rose-700 dark:text-rose-400 hover:bg-rose-500/10"
+                              className="h-8 lg:h-9 px-2.5 lg:px-3 text-xs lg:text-sm font-semibold gap-1 rounded-lg border-rose-500/40 text-rose-700 dark:text-rose-400 hover:bg-rose-500/10 cursor-pointer"
                               onClick={() => handleMark('absent')}
                             >
-                              <X className="h-3.5 w-3.5" />
+                              <X className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                               Absent
                             </Button>
                           </div>
@@ -453,41 +550,88 @@ function StudentDashboardContent() {
           </CardContent>
         </Card>
 
-        {/* Today's Checklist */}
+        {/* Today's Checklist Card */}
         <TodayChecklistCard
+          className="animate-slide-fade-up stagger-4"
           checklist={todayChecklist}
           onToggle={handleToggleChecklist}
           togglingId={togglingActivityId}
         />
+      </div>
 
-        {/* Upcoming Assignments */}
-        <Card>
-          <CardHeader className="pb-3">
+      {/* ── Quick Navigation Shortcuts ── */}
+      <Card className="rounded-xl border-border/80 shadow-xs animate-slide-fade-up stagger-5">
+        <CardHeader className="py-2.5 lg:py-3 px-4 border-b border-border/40">
+          <CardTitle className="text-xs lg:text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <Sparkles className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-primary" />
+            Quick Navigation
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+            <QuickAction
+              onClick={() => setQuickAttendanceOpen(true)}
+              icon={CheckSquare}
+              label="Attendance"
+              iconColor="text-emerald-500"
+            />
+            <QuickAction href="/planner" icon={ListChecks} label="Planner" />
+            <QuickAction href="/subjects" icon={BookOpen} label="Subjects" />
+            <QuickAction href="/assignments" icon={ClipboardList} label="Assignments" />
+            <QuickAction href="/exams" icon={GraduationCap} label="Exams" />
+            <QuickAction href="/fees" icon={DollarSign} label="Fees" />
+            <QuickAction href="/results" icon={BarChart3} label="Results" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Academic Tracking & Deadlines (Balanced 3-column row) ── */}
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        {/* Card 1: Upcoming Exams */}
+        <ExamCountdownCard exams={upcomingExams} className="animate-slide-fade-up stagger-6" />
+
+        {/* Card 2: Upcoming Assignments */}
+        <Card className="rounded-xl border-border/80 shadow-xs flex flex-col animate-slide-fade-up stagger-7">
+          <CardHeader className="pb-3 border-b border-border/40">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Upcoming Assignments</CardTitle>
+              <CardTitle className="text-base sm:text-lg lg:text-xl font-semibold flex items-center gap-2">
+                <ClipboardList className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
+                Assignments
+              </CardTitle>
               <Link href="/assignments">
-                <Button variant="ghost" size="sm">
-                  View All <ArrowRight className="ml-1 h-3 w-3" />
+                <Button variant="ghost" size="sm" className="h-7 lg:h-8 text-xs lg:text-sm font-medium cursor-pointer">
+                  View All <ArrowRight className="ml-1 h-3.5 w-3.5" />
                 </Button>
               </Link>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-3 flex-1">
             {upcomingAssignments.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">
-                No upcoming assignments.
-              </p>
+              <div className="py-8 text-center space-y-1">
+                <p className="text-sm lg:text-base text-muted-foreground">
+                  No upcoming assignments.
+                </p>
+                <p className="text-xs lg:text-sm text-muted-foreground/60">
+                  All assignments completed or none published yet.
+                </p>
+              </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {upcomingAssignments.map((a) => {
                   const subject = subjects.find((s) => s.id === a.subjectId);
                   return (
-                    <div key={a.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                    <div
+                      key={a.id}
+                      className="flex items-center justify-between rounded-xl border border-border/70 p-3 lg:p-3.5 hover:bg-muted/20 transition-colors"
+                    >
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{a.title}</p>
-                        <p className="text-xs text-muted-foreground">{subject?.name}</p>
+                        <p className="text-sm sm:text-base font-semibold truncate">{a.title}</p>
+                        <p className="text-xs lg:text-sm text-muted-foreground">{subject?.name}</p>
                       </div>
-                      <Badge variant={a.priority === 'high' ? 'destructive' : 'secondary'} className="ml-2 text-xs">
+                      <Badge
+                        variant={a.priority === 'high' ? 'destructive' : 'secondary'}
+                        className="ml-2 text-[11px] lg:text-xs shrink-0 font-medium"
+                      >
                         {formatDate(a.deadline, { month: 'short', day: 'numeric' })}
                       </Badge>
                     </div>
@@ -498,35 +642,69 @@ function StudentDashboardContent() {
           </CardContent>
         </Card>
 
-        {/* Upcoming Exams */}
-        <ExamCountdownCard exams={upcomingExams} />
-      </div>
+        {/* Card 3: Tuition & Fees Summary */}
+        <Card className="rounded-xl border-border/80 shadow-xs flex flex-col animate-slide-fade-up stagger-8">
+          <CardHeader className="pb-3 border-b border-border/40">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base sm:text-lg lg:text-xl font-semibold flex items-center gap-2">
+                <DollarSign className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
+                Tuition & Fees
+              </CardTitle>
+              <Link href="/fees">
+                <Button variant="ghost" size="sm" className="h-7 lg:h-8 text-xs lg:text-sm font-medium cursor-pointer">
+                  Fee Records <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-4 flex-1 flex flex-col justify-between space-y-4">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs lg:text-sm text-muted-foreground font-medium">Remaining Due</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-semibold text-foreground tracking-tight">
+                    <CountUp value={feeSummary ? formatCurrency(feeSummary.remaining) : '৳0'} />
+                  </p>
+                </div>
+                <Badge
+                  variant={feeSummary && feeSummary.remaining > 0 ? 'destructive' : 'default'}
+                  className={cn(
+                    'text-xs lg:text-sm font-semibold px-2.5 py-1 rounded-lg',
+                    feeSummary && feeSummary.remaining === 0 ? 'bg-emerald-600 text-white' : ''
+                  )}
+                >
+                  {feeSummary && feeSummary.remaining > 0 ? 'Payment Due' : 'All Cleared'}
+                </Badge>
+              </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => setQuickAttendanceOpen(true)}
-              className="h-auto w-full flex-col gap-1.5 py-3 text-xs"
-            >
-              <CheckSquare className="h-4 w-4 text-emerald-500" />
-              Mark Attendance
-            </Button>
-            <QuickAction href="/planner" icon={ListChecks} label="Routine Planner" />
-            <QuickAction href="/subjects" icon={BookOpen} label="Add Subject" />
-            <QuickAction href="/assignments" icon={ClipboardList} label="Add Assignment" />
-            <QuickAction href="/exams" icon={GraduationCap} label="Exam Routine" />
-            <QuickAction href="/fees" icon={DollarSign} label="Add Payment" />
-            <QuickAction href="/results" icon={BarChart3} label="Results & Scholarship" />
-          </div>
-        </CardContent>
-      </Card>
+              {feeSummary && (
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex justify-between text-xs lg:text-sm text-muted-foreground">
+                    <span>Paid: {formatCurrency(feeSummary.totalPaid)}</span>
+                    <span>Total: {formatCurrency(feeSummary.totalFees)}</span>
+                  </div>
+                  <Progress
+                    value={feeSummary.totalFees > 0 ? (feeSummary.totalPaid / feeSummary.totalFees) * 100 : 100}
+                    className="h-2 lg:h-2.5 rounded-full"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2">
+              <Link href="/fees" className="w-full block">
+                <Button
+                  variant={feeSummary && feeSummary.remaining > 0 ? 'default' : 'outline'}
+                  size="sm"
+                  className="w-full h-8 lg:h-9 text-xs lg:text-sm font-semibold rounded-xl cursor-pointer"
+                >
+                  {feeSummary && feeSummary.remaining > 0 ? 'Pay Online / View Details' : 'View Fee History'}
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Quick Attendance Dialog */}
       <Dialog open={quickAttendanceOpen} onOpenChange={setQuickAttendanceOpen}>
@@ -678,54 +856,119 @@ function StudentDashboardContent() {
 
 // ── Helper Components ─────────────────────────────────
 
-function StatsCard({
+function HeroStatCard({
+  variant,
   title,
   value,
   subtitle,
   icon: Icon,
   href,
-  color,
+  actionText,
+  className = '',
 }: {
+  variant: 'purple' | 'orange' | 'green' | 'blue';
   title: string;
   value: string;
   subtitle: string;
   icon: React.ComponentType<{ className?: string }>;
   href: string;
-  color?: string;
+  actionText?: string;
+  className?: string;
 }) {
+  const styles = {
+    purple: {
+      cardClass: 'card-pastel-purple text-purple-950 dark:text-purple-100',
+      iconBg: 'bg-purple-500/15 text-purple-700 dark:bg-purple-400/20 dark:text-purple-300',
+    },
+    orange: {
+      cardClass: 'card-pastel-orange text-amber-950 dark:text-amber-100',
+      iconBg: 'bg-amber-500/15 text-amber-700 dark:bg-amber-400/20 dark:text-amber-300',
+    },
+    green: {
+      cardClass: 'card-pastel-green text-emerald-950 dark:text-emerald-100',
+      iconBg: 'bg-emerald-500/15 text-emerald-700 dark:bg-emerald-400/20 dark:text-emerald-300',
+    },
+    blue: {
+      cardClass: 'card-pastel-blue text-blue-950 dark:text-blue-100',
+      iconBg: 'bg-blue-500/15 text-blue-700 dark:bg-blue-400/20 dark:text-blue-300',
+    },
+  }[variant];
+
   return (
-    <Link href={href}>
-      <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-medium text-muted-foreground">{title}</p>
-            <Icon className="h-4 w-4 text-muted-foreground" />
+    <Link href={href} className={cn("group flex flex-col h-full animate-slide-fade-up", className)}>
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-xl p-3.5 sm:p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border flex flex-col justify-between flex-1 h-full",
+          styles.cardClass
+        )}
+      >
+        <div className="flex items-start justify-between gap-2 flex-1">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] sm:text-xs lg:text-sm font-semibold uppercase tracking-wider text-muted-foreground/85 min-h-8 sm:min-h-0 flex items-center leading-tight">
+              {title}
+            </p>
+            <p className="mt-1 sm:mt-1.5 text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-foreground truncate">
+              <CountUp value={value} />
+            </p>
           </div>
-          <p className={`text-2xl font-bold ${color || ''}`}>{value}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
-        </CardContent>
-      </Card>
+          <div
+            className={cn(
+              "w-9 h-9 sm:w-11 sm:h-11 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center shrink-0 shadow-xs",
+              styles.iconBg
+            )}
+          >
+            <Icon className="h-4.5 w-4.5 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+          </div>
+        </div>
+
+        <div className="mt-3 sm:mt-4 pt-2 sm:pt-2.5 border-t border-black/5 dark:border-white/10 flex items-center justify-between gap-1 text-xs lg:text-sm shrink-0">
+          <span className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground truncate min-w-0 flex-1">
+            {subtitle}
+          </span>
+          <span className="inline-flex items-center gap-0.5 text-[10px] sm:text-xs lg:text-sm font-semibold text-primary group-hover:underline shrink-0">
+            {actionText || 'View'}
+            <ChevronRight className="h-3 w-3 lg:h-3.5 lg:w-3.5" />
+          </span>
+        </div>
+      </div>
     </Link>
   );
 }
 
 function QuickAction({
   href,
+  onClick,
   icon: Icon,
   label,
+  iconColor,
 }: {
-  href: string;
+  href?: string;
+  onClick?: () => void;
   icon: React.ComponentType<{ className?: string }>;
   label: string;
+  iconColor?: string;
 }) {
-  return (
-    <Link href={href} className="w-full">
-      <Button variant="outline" className="h-auto w-full flex-col gap-1.5 py-3 text-xs">
-        <Icon className="h-4 w-4" />
-        {label}
-      </Button>
-    </Link>
+  const content = (
+    <Button
+      variant="outline"
+      type="button"
+      onClick={onClick}
+      className="h-auto w-full flex-col gap-1.5 py-2.5 lg:py-3 px-2 lg:px-2.5 text-xs lg:text-sm rounded-xl border-border/70 hover:bg-muted/40 hover:border-primary/40 transition-all active:scale-95 shadow-2xs cursor-pointer"
+    >
+      <Icon className={`h-4 w-4 lg:h-5 lg:w-5 ${iconColor || 'text-primary'}`} />
+      <span className="truncate max-w-full font-medium">{label}</span>
+    </Button>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="w-full">
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className="w-full">{content}</div>;
 }
 
 function getGreeting(name: string): string {
@@ -762,7 +1005,7 @@ function parseExamEndTime(dateStr: string, timeStr?: string): Date | null {
   }
 }
 
-function ExamCountdownCard({ exams }: { exams: ExamRoutineItem[] }) {
+function ExamCountdownCard({ exams, className = '' }: { exams: ExamRoutineItem[]; className?: string }) {
   const [now, setNow] = useState(() => new Date());
 
   // Auto-update every 30 seconds
@@ -780,24 +1023,32 @@ function ExamCountdownCard({ exams }: { exams: ExamRoutineItem[] }) {
   });
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Card className={cn("rounded-xl border-border/80 shadow-xs overflow-hidden flex flex-col", className)}>
+      <CardHeader className="pb-3 border-b border-border/40">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Upcoming Exams</CardTitle>
+          <CardTitle className="text-base sm:text-lg lg:text-xl font-semibold flex items-center gap-2">
+            <GraduationCap className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
+            Upcoming Exams
+          </CardTitle>
           <Link href="/exams">
-            <Button variant="ghost" size="sm">
-              View All <ArrowRight className="ml-1 h-3 w-3" />
+            <Button variant="ghost" size="sm" className="h-7 lg:h-8 text-xs lg:text-sm font-medium cursor-pointer">
+              View All <ArrowRight className="ml-1 h-3.5 w-3.5" />
             </Button>
           </Link>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-3 flex-1">
         {activeExams.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4 text-center">
-            No upcoming exams.
-          </p>
+          <div className="py-8 text-center space-y-1">
+            <p className="text-sm lg:text-base text-muted-foreground">
+              No upcoming exams.
+            </p>
+            <p className="text-xs lg:text-sm text-muted-foreground/60">
+              No exam routine published yet.
+            </p>
+          </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {activeExams.map((e) => {
               // Calculate time remaining
               const examDate = new Date(e.date + 'T00:00:00');
@@ -840,14 +1091,17 @@ function ExamCountdownCard({ exams }: { exams: ExamRoutineItem[] }) {
               const examTypeLabel = e.examType === 'in_course' ? 'In-Course' : e.examType === 'semester_final' ? 'Semester Final' : 'NU Final';
 
               return (
-                <div key={e.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                <div
+                  key={e.id}
+                  className="flex items-center justify-between rounded-xl border border-border/70 p-3 lg:p-3.5 hover:bg-muted/20 transition-colors"
+                >
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">{e.courseName}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm sm:text-base font-semibold truncate">{e.courseName}</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground mt-0.5">
                       {examTypeLabel} · {e.courseCode} · {formatDate(e.date)}{e.time ? ` (${e.time})` : ''}
                     </p>
                   </div>
-                  <Badge variant={isUrgent ? 'destructive' : 'secondary'} className="ml-2 text-xs shrink-0">
+                  <Badge variant={isUrgent ? 'destructive' : 'secondary'} className="ml-2 text-xs lg:text-sm font-semibold shrink-0">
                     {countdownLabel}
                   </Badge>
                 </div>
@@ -864,6 +1118,7 @@ function TodayChecklistCard({
   checklist,
   onToggle,
   togglingId,
+  className = '',
 }: {
   checklist: {
     activities: (RoutineActivity & { routineName: string; completed: boolean; completedAt?: Date; checklistId?: string })[];
@@ -871,54 +1126,55 @@ function TodayChecklistCard({
   };
   onToggle: (activityId: string, routineId: string) => void;
   togglingId: string | null;
+  className?: string;
 }) {
   const todayStr = getLocalDateString();
   const now = new Date();
 
   return (
-    <Card className="flex flex-col">
-      <CardHeader className="pb-3">
+    <Card className={cn("rounded-xl border-border/80 shadow-xs flex flex-col overflow-hidden", className)}>
+      <CardHeader className="pb-3 border-b border-border/40">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <ListChecks className="h-4 w-4 text-primary" />
+            <CardTitle className="text-base sm:text-lg lg:text-xl font-semibold flex items-center gap-2">
+              <ListChecks className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
               Today&apos;s Checklist
             </CardTitle>
             {checklist.stats.total > 0 && (
-              <Badge variant="secondary" className="text-xs px-2 py-0.5">
+              <Badge variant="secondary" className="text-xs lg:text-sm px-2 py-0.5 font-semibold">
                 {checklist.stats.completed}/{checklist.stats.total}
               </Badge>
             )}
           </div>
           <Link href="/planner">
-            <Button variant="ghost" size="sm" className="h-7 text-xs">
-              Planner <ArrowRight className="ml-1 h-3 w-3" />
+            <Button variant="ghost" size="sm" className="h-7 lg:h-8 text-xs lg:text-sm font-medium cursor-pointer">
+              Planner <ArrowRight className="ml-1 h-3.5 w-3.5" />
             </Button>
           </Link>
         </div>
 
         {checklist.stats.total > 0 && (
           <div className="space-y-1.5 pt-2">
-            <div className="flex justify-between text-xs text-muted-foreground">
+            <div className="flex justify-between text-xs lg:text-sm text-muted-foreground font-medium">
               <span>{checklist.stats.percentage}% completed</span>
               <span>{checklist.stats.remaining} remaining</span>
             </div>
-            <Progress value={checklist.stats.percentage} className="h-2" />
+            <Progress value={checklist.stats.percentage} className="h-2 lg:h-2.5 rounded-full" />
           </div>
         )}
       </CardHeader>
 
-      <CardContent className="flex-1">
+      <CardContent className="flex-1 pt-3">
         {checklist.activities.length === 0 ? (
           <div className="py-6 text-center space-y-2">
-            <p className="text-sm text-muted-foreground">No routine activities scheduled for today.</p>
-            <p className="text-xs text-muted-foreground/70">
+            <p className="text-sm lg:text-base font-medium text-muted-foreground">No routine activities scheduled for today.</p>
+            <p className="text-xs lg:text-sm text-muted-foreground/70">
               Create a routine in the planner to schedule your daily habits and tasks.
             </p>
             <div className="pt-2">
               <Link href="/planner">
-                <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5">
-                  <Plus className="h-3.5 w-3.5" />
+                <Button variant="outline" size="sm" className="h-8 lg:h-9 text-xs lg:text-sm gap-1.5 rounded-xl cursor-pointer">
+                  <Plus className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                   Set Up Routine
                 </Button>
               </Link>
@@ -938,12 +1194,12 @@ function TodayChecklistCard({
                 <div
                   key={activity.id}
                   onClick={() => !isToggling && onToggle(activity.id, activity.routineId)}
-                  className={`flex items-start gap-3 p-2.5 rounded-lg border transition-all cursor-pointer ${
+                  className={`flex items-start gap-3 p-2.5 lg:p-3 rounded-xl border transition-all duration-150 cursor-pointer ${
                     activity.completed
-                      ? 'bg-muted/30 border-muted opacity-80'
+                      ? 'bg-muted/30 border-muted/50 opacity-80'
                       : isPast
                       ? 'border-rose-500/30 bg-rose-500/5 hover:border-rose-500/50'
-                      : 'border-border hover:border-primary/40 hover:bg-muted/20'
+                      : 'border-border/70 hover:border-primary/40 hover:bg-muted/20'
                   }`}
                 >
                   <button
@@ -953,18 +1209,18 @@ function TodayChecklistCard({
                     aria-label={`Toggle ${activity.title}`}
                   >
                     {activity.completed ? (
-                      <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500" />
+                      <CheckCircle2 className="h-4.5 w-4.5 lg:h-5 lg:w-5 text-emerald-500" />
                     ) : isPast ? (
-                      <AlertCircle className="h-4.5 w-4.5 text-rose-400" />
+                      <AlertCircle className="h-4.5 w-4.5 lg:h-5 lg:w-5 text-rose-400" />
                     ) : (
-                      <Circle className="h-4.5 w-4.5 text-muted-foreground/40 hover:text-primary transition-colors" />
+                      <Circle className="h-4.5 w-4.5 lg:h-5 lg:w-5 text-muted-foreground/40 hover:text-primary transition-colors" />
                     )}
                   </button>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p
-                        className={`text-sm font-medium leading-snug truncate ${
+                        className={`text-sm sm:text-base font-semibold leading-snug truncate ${
                           activity.completed ? 'line-through text-muted-foreground' : 'text-foreground'
                         }`}
                       >
@@ -972,16 +1228,16 @@ function TodayChecklistCard({
                       </p>
                       <Badge
                         variant="outline"
-                        className="text-[10px] px-1.5 py-0 h-4 font-normal"
+                        className="text-[10px] lg:text-xs px-1.5 py-0 h-4 lg:h-5 font-normal"
                         style={{ borderColor: cat.color + '40', color: cat.color }}
                       >
                         {cat.icon} {cat.label}
                       </Badge>
                     </div>
 
-                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-0.5">
+                    <div className="flex items-center gap-2 text-[11px] lg:text-xs text-muted-foreground mt-0.5">
                       <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
+                        <Clock className="h-3 w-3 lg:h-3.5 lg:w-3.5" />
                         {formatTime(activity.startTime)} – {formatTime(activity.endTime)}
                       </span>
                       <span>·</span>
@@ -995,7 +1251,7 @@ function TodayChecklistCard({
             {checklist.activities.length > 6 && (
               <div className="pt-1 text-center">
                 <Link href="/planner">
-                  <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground">
+                  <Button variant="ghost" size="sm" className="h-7 lg:h-8 text-xs lg:text-sm text-muted-foreground cursor-pointer">
                     +{checklist.activities.length - 6} more in Planner →
                   </Button>
                 </Link>

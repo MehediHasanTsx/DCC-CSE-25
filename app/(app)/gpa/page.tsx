@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CountUp } from '@/components/ui/count-up';
 import {
   Select,
   SelectContent,
@@ -94,7 +95,7 @@ export default function GpaPage() {
   if (!profile) return null;
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">GPA / CGPA</h1>
         <p className="text-sm text-muted-foreground">
@@ -112,28 +113,36 @@ export default function GpaPage() {
         {/* Semester GPA */}
         <TabsContent value="semester" className="space-y-4">
           <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-            <Card>
+            <Card className="animate-slide-fade-up stagger-1">
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground mb-1">Semester GPA</p>
-                <p className="text-2xl font-bold">{semesterResult?.gpa.toFixed(2) || '0.00'}</p>
+                <p className="text-xl sm:text-2xl font-semibold text-foreground">
+                  <CountUp value={semesterResult?.gpa.toFixed(2) || '0.00'} />
+                </p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="animate-slide-fade-up stagger-2">
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground mb-1">Total Credits</p>
-                <p className="text-2xl font-bold">{semesterResult?.totalCredits || 0}</p>
+                <p className="text-xl sm:text-2xl font-semibold text-foreground">
+                  <CountUp value={semesterResult?.totalCredits || 0} />
+                </p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="animate-slide-fade-up stagger-3">
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground mb-1">Earned Credits</p>
-                <p className="text-2xl font-bold">{semesterResult?.earnedCredits || 0}</p>
+                <p className="text-xl sm:text-2xl font-semibold text-foreground">
+                  <CountUp value={semesterResult?.earnedCredits || 0} />
+                </p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="animate-slide-fade-up stagger-4">
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground mb-1">Courses</p>
-                <p className="text-2xl font-bold">{semesterResult?.results.length || 0}</p>
+                <p className="text-xl sm:text-2xl font-semibold text-foreground">
+                  <CountUp value={semesterResult?.results.length || 0} />
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -193,7 +202,9 @@ export default function GpaPage() {
           <Card>
             <CardContent className="p-6 text-center">
               <p className="text-xs text-muted-foreground mb-2">Overall CGPA</p>
-              <p className="text-5xl font-bold">{cgpaResult?.cgpa.toFixed(2) || '0.00'}</p>
+              <p className="text-4xl sm:text-5xl font-semibold text-foreground tracking-tight">
+                <CountUp value={cgpaResult?.cgpa.toFixed(2) || '0.00'} />
+              </p>
               <p className="text-sm text-muted-foreground mt-2">
                 {cgpaResult?.totalCredits || 0} total credits
               </p>

@@ -2,17 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { cloudSyncService, type SyncStatus } from '@/lib/services/cloud-sync.service';
-import { CloudCheck, RefreshCw, AlertCircle, Cloud } from 'lucide-react';
+import { Cloud, RefreshCw, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function CloudSyncStatus({
-  variant = 'compact',
   className = '',
 }: {
-  variant?: 'compact' | 'card';
+  variant?: 'compact' | 'card' | 'modern';
   className?: string;
 }) {
   const [status, setStatus] = useState<SyncStatus>(cloudSyncService.getStatus());
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(cloudSyncService.getLastSyncTime());
+  const [isManualSyncing, setIsManualSyncing] = useState(false);
 
   useEffect(() => {
     const unsubscribe = cloudSyncService.subscribe((newStatus, time) => {
@@ -22,81 +23,87 @@ export function CloudSyncStatus({
     return unsubscribe;
   }, []);
 
-  const isSyncing = status === 'syncing';
+  const isSyncing = status === 'syncing' || isManualSyncing;
 
-  // ── Compact: subtle pill in the app header ──
-  if (variant === 'compact') {
-    return (
-      <div
-        title={
-          isSyncing
-            ? 'Saving changes...'
-            : status === 'error'
-            ? 'Sync paused — will retry automatically'
-            : lastSyncTime
-            ? `All changes saved · Last synced ${lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-            : 'All changes saved to cloud'
-        }
-        className={`inline-flex items-center h-7 px-2.5 rounded-full text-xs font-medium transition-all select-none ${
-          isSyncing
-            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30'
-            : status === 'error'
-            ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30'
-            : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25'
-        } ${className}`}
-      >
-        {isSyncing ? (
-          <>
-            <RefreshCw className="h-3 w-3 mr-1.5 animate-spin" />
-            <span>Saving...</span>
-          </>
-        ) : status === 'error' ? (
-          <>
-            <AlertCircle className="h-3 w-3 mr-1.5" />
-            <span>Offline</span>
-          </>
-        ) : (
-          <>
-            <CloudCheck className="h-3 w-3 mr-1.5" />
-            <span className="hidden xs:inline">Saved</span>
-          </>
-        )}
-      </div>
-    );
-  }
+  const handleManualSync = async () => {
+    if (isSyncing) return;
+    try {
+      setIsManualSyncing(true);
+      const res = await cloudSyncService.smartSync();
+      if (res.success) {
+        toast.success(res.message || 'All records synced with cloud.');
+      } else {
+        toast.error(res.message || 'Sync failed. Will retry automatically.');
+      }
+    } catch {
+      toast.error('Sync error. Please check your internet connection.');
+    } finally {
+      setIsManualSyncing(false);
+    }
+  };
 
-  // ── Card: passive status display for sidebar & settings ──
+  const tooltipText = isSyncing
+    ? 'Syncing changes to cloud...'
+    : status === 'error'
+    ? 'Offline — changes saved locally. Will retry when connected.'
+    : lastSyncTime
+    ? `All changes saved to cloud · Last synced ${lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · Click to sync now`
+    : 'All changes saved to cloud · Click to sync now';
+
   return (
-    <div className={`rounded-xl border border-border/70 p-3 bg-muted/30 ${className}`}>
-      <div className="flex items-center gap-2.5">
+    <button
+      type="button"
+      onClick={handleManualSync}
+      disabled={isSyncing}
+      title={tooltipText}
+      aria-label="Cloud sync status"
+      className={`group relative inline-flex items-center gap-2 h-8.5 px-2.5 sm:px-3 rounded-xl border border-border/70 bg-card/80 hover:bg-muted/70 hover:border-primary/30 transition-all duration-200 text-xs font-semibold select-none shadow-2xs active:scale-95 cursor-pointer ${
+        isSyncing
+          ? 'border-sky-500/30 bg-sky-500/5 text-sky-600 dark:text-sky-400'
+          : status === 'error'
+          ? 'border-rose-500/30 bg-rose-500/5 text-rose-600 dark:text-rose-400'
+          : 'text-foreground'
+      } ${className}`}
+    >
+      {/* Icon with glowing status dot */}
+      <span className="relative flex items-center justify-center shrink-0">
         {isSyncing ? (
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/15 text-amber-500 shrink-0">
-            <RefreshCw className="h-4 w-4 animate-spin" />
-          </div>
+          <RefreshCw className="h-3.5 w-3.5 animate-spin text-sky-500" />
         ) : status === 'error' ? (
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/15 text-rose-500 shrink-0">
-            <AlertCircle className="h-4 w-4" />
-          </div>
+          <AlertCircle className="h-3.5 w-3.5 text-rose-500" />
         ) : (
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-500 shrink-0">
-            <Cloud className="h-4 w-4" />
-          </div>
+          <Cloud className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
         )}
-        <div className="min-w-0">
-          <p className="text-xs font-semibold leading-tight text-foreground">
-            {isSyncing ? 'Saving changes...' : status === 'error' ? 'Sync paused' : 'All changes saved'}
-          </p>
-          <p className="text-[0.65rem] text-muted-foreground mt-0.5 truncate">
-            {isSyncing
-              ? 'Syncing to cloud...'
-              : status === 'error'
-              ? 'Will retry automatically when online'
-              : lastSyncTime
-              ? `Last synced ${lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · Auto-save on`
-              : 'Auto-save enabled · Neon Cloud'}
-          </p>
-        </div>
-      </div>
-    </div>
+
+        {/* Live glowing micro-badge */}
+        <span className="absolute -top-1 -right-1 flex h-2 w-2">
+          {isSyncing ? (
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
+          ) : status === 'error' ? (
+            <span className="inline-flex rounded-full h-2 w-2 bg-rose-500" />
+          ) : (
+            <span className="inline-flex rounded-full h-2 w-2 bg-emerald-500 ring-2 ring-card shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
+          )}
+          <span
+            className={`relative inline-flex rounded-full h-2 w-2 ${
+              isSyncing ? 'bg-sky-500' : status === 'error' ? 'bg-rose-500' : 'bg-emerald-500'
+            }`}
+          />
+        </span>
+      </span>
+
+      {/* Modern Label */}
+      <span className="text-[11px] sm:text-xs font-medium tracking-tight">
+        {isSyncing ? (
+          <span className="text-sky-600 dark:text-sky-400 font-semibold">Syncing</span>
+        ) : status === 'error' ? (
+          <span className="text-rose-600 dark:text-rose-400 font-semibold">Offline</span>
+        ) : (
+          <span className="text-muted-foreground group-hover:text-foreground transition-colors">
+            Synced
+          </span>
+        )}
+      </span>
+    </button>
   );
 }
