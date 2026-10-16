@@ -51,6 +51,7 @@ export function useProfile() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- data-fetching pattern: loading from IndexedDB on mount
     void load();
   }, [load]);
 

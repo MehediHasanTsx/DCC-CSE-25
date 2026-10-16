@@ -9,7 +9,6 @@ import { useCloudSync } from '@/lib/hooks/useCloudSync';
 import { useAuth } from '@/components/providers/auth-provider';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { useTheme } from 'next-themes';
 import {
   Menu,
   LogIn,
@@ -19,8 +18,6 @@ import {
   CheckSquare,
   ListChecks,
   MoreHorizontal,
-  Sun,
-  Moon,
   GraduationCap,
 } from 'lucide-react';
 import { CloudSyncStatus } from '@/components/shared/cloud-sync-status';
@@ -28,15 +25,14 @@ import { AskAdminWidget } from '@/components/shared/ask-admin-widget';
 
 const MOBILE_NAV_ITEMS = [
   { label: 'Home', href: '/', icon: LayoutDashboard },
-  { label: 'Routine', href: '/routine', icon: Calendar },
+  { label: 'Class Routine', href: '/routine', icon: Calendar },
   { label: 'Attendance', href: '/attendance', icon: CheckSquare },
-  { label: 'Planner', href: '/planner', icon: ListChecks },
+  { label: 'Daily Routine', href: '/planner', icon: ListChecks },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
   const { isGuest, exitGuestMode } = useAuth();
 
   // Auto-sync all data to cloud whenever IndexedDB changes (disabled automatically for guests)

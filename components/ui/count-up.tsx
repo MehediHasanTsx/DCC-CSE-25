@@ -78,7 +78,9 @@ export function CountUp({
 
     // Check prefers-reduced-motion
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setDisplayValue(parsed.target);
+      rafRef.current = requestAnimationFrame(() => {
+        setDisplayValue(parsed.target);
+      });
       return;
     }
 

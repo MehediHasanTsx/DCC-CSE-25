@@ -238,10 +238,10 @@ export default function PlannerPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
           <ListChecks className="h-6 w-6 text-primary" />
-          Routine Planner
+          Daily Routine
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Plan your daily activities and track completion
+          Plan your daily personal activities, habits, and checklist
         </p>
       </div>
 

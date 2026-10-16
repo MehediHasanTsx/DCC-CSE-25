@@ -15,8 +15,8 @@ function useIsMounted() {
 const ROUTE_TITLES: Record<string, string> = {
   '/': 'Dashboard',
   '/attendance': 'Attendance',
-  '/routine': 'Routine',
-  '/planner': 'Routine Planner',
+  '/routine': 'Class Routine',
+  '/planner': 'Daily Routine',
   '/exams': 'Exam Routine & Seat Plan',
   '/fees': 'Fees & Payments',
   '/gpa': 'CGPA Calculator',

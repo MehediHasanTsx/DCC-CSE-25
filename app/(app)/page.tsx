@@ -242,7 +242,7 @@ function StudentDashboardContent() {
               className="h-9 lg:h-10 px-3 lg:px-4 text-xs lg:text-sm font-medium rounded-xl border-border hover:bg-muted/50 gap-1.5 cursor-pointer"
             >
               <ListChecks className="h-4 w-4 text-muted-foreground" />
-              Planner
+              Daily Routine
             </Button>
           </Link>
         </div>
@@ -370,7 +370,7 @@ function StudentDashboardContent() {
                 )}
                 <Link href="/routine">
                   <Button variant="ghost" size="sm" className="h-7 sm:h-8 lg:h-9 text-xs lg:text-sm rounded-lg font-medium cursor-pointer">
-                    Full Routine <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                    Class Routine <ArrowRight className="ml-1 h-3.5 w-3.5" />
                   </Button>
                 </Link>
               </div>
@@ -575,7 +575,7 @@ function StudentDashboardContent() {
               label="Attendance"
               iconColor="text-emerald-500"
             />
-            <QuickAction href="/planner" icon={ListChecks} label="Planner" />
+            <QuickAction href="/planner" icon={ListChecks} label="Daily Routine" />
             <QuickAction href="/subjects" icon={BookOpen} label="Subjects" />
             <QuickAction href="/assignments" icon={ClipboardList} label="Assignments" />
             <QuickAction href="/exams" icon={GraduationCap} label="Exams" />
@@ -1148,7 +1148,7 @@ function TodayChecklistCard({
           </div>
           <Link href="/planner">
             <Button variant="ghost" size="sm" className="h-7 lg:h-8 text-xs lg:text-sm font-medium cursor-pointer">
-              Planner <ArrowRight className="ml-1 h-3.5 w-3.5" />
+              Daily Routine <ArrowRight className="ml-1 h-3.5 w-3.5" />
             </Button>
           </Link>
         </div>

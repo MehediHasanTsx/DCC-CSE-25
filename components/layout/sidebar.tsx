@@ -55,7 +55,7 @@ const NAV_SECTIONS = [
       { label: 'Attendance', href: '/attendance', icon: CheckSquare },
       { label: 'GPA / CGPA', href: '/gpa', icon: BarChart3 },
       { label: 'Results & Scholarship', href: '/results', icon: Award },
-      { label: 'Routine', href: '/routine', icon: Calendar },
+      { label: 'Class Routine', href: '/routine', icon: Calendar },
     ],
   },
   {
@@ -69,7 +69,7 @@ const NAV_SECTIONS = [
   {
     label: 'Tools',
     items: [
-      { label: 'Routine Planner', href: '/planner', icon: ListChecks },
+      { label: 'Daily Routine', href: '/planner', icon: ListChecks },
       { label: 'Notes', href: '/notes', icon: StickyNote },
       { label: 'Analytics', href: '/analytics', icon: TrendingUp },
       { label: 'Lab Projects', href: '/lab-projects', icon: FlaskConical },
