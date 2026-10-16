@@ -1,5 +1,5 @@
 import { db } from '@/lib/db/database';
-import { getActiveUserId } from '@/lib/db/user-db';
+import { getActiveUserId, isGuestSession } from '@/lib/db/user-db';
 
 /**
  * Cloud Sync Service — Two-way, multi-device synchronization engine
@@ -271,7 +271,7 @@ export const cloudSyncService = {
    * Useful when user knows this device holds the freshest data (e.g., phone).
    */
   async pushToCloud(): Promise<boolean> {
-    if (_isSyncing) return false;
+    if (!getActiveUserId() || isGuestSession() || _isSyncing) return false;
     this.cancelPendingUpload();
     setSyncStatus('syncing');
 
@@ -314,6 +314,7 @@ export const cloudSyncService = {
    * Useful when device needs to catch up to the latest cloud version.
    */
   async pullFromCloud(): Promise<boolean> {
+    if (!getActiveUserId() || isGuestSession() || _isSyncing) return false;
     setSyncStatus('syncing');
 
     try {
@@ -355,6 +356,11 @@ export const cloudSyncService = {
    * - If both are equal: Reports up to date.
    */
   async smartSync(): Promise<SmartSyncResult> {
+    if (!getActiveUserId() || isGuestSession()) {
+      setSyncStatus('synced');
+      return { success: true, action: 'up_to_date', message: 'Guest session.' };
+    }
+
     if (_isSyncing) {
       return { success: true, action: 'up_to_date', message: 'Sync in progress...' };
     }
@@ -419,7 +425,7 @@ export const cloudSyncService = {
    * Schedule a debounced upload when local data is modified.
    */
   scheduleUpload(): void {
-    if (_isSyncing) return;
+    if (!getActiveUserId() || isGuestSession() || _isSyncing) return;
 
     setStoredString('has_pending', 'true');
     setStoredString('last_local_edit', String(Date.now()));
@@ -440,6 +446,7 @@ export const cloudSyncService = {
   },
 
   async flushPendingUpload(): Promise<void> {
+    if (!getActiveUserId() || isGuestSession()) return;
     if (_syncTimer || getStoredString('has_pending') === 'true') {
       this.cancelPendingUpload();
       await this.pushToCloud();

@@ -33,28 +33,35 @@ const ROUTE_TITLES: Record<string, string> = {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, isGuest } = useAuth();
   const { isReady: dbReady } = useDatabaseReady();
   const [ready, setReady] = useState(false);
   const isMounted = useIsMounted();
 
   const isPublicHome = pathname === '/';
+  const canAccess = isAuthenticated || isGuest;
 
-  // Update document title for authenticated app routes
+  // Update document title for authenticated or guest app routes
   useEffect(() => {
-    if (isAuthenticated) {
+    if (canAccess) {
       const pageTitle = ROUTE_TITLES[pathname] || 'Dashboard';
       document.title = `${pageTitle} | DCC CSE`;
     }
-  }, [pathname, isAuthenticated]);
+  }, [pathname, canAccess]);
 
   useEffect(() => {
     if (!isMounted || authLoading) return;
 
-    if (!isAuthenticated) {
+    if (!canAccess) {
       if (!isPublicHome) {
         router.replace('/login');
       }
+      return;
+    }
+
+    // Guests cannot access admin controls
+    if (isGuest && pathname === '/admin') {
+      router.replace('/');
       return;
     }
 
@@ -62,16 +69,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     if (!dbReady) return;
 
     profileService.exists().then((exists) => {
-      if (!exists) {
+      if (!exists && !isGuest) {
         router.replace('/onboarding');
       } else {
         setReady(true);
       }
     });
-  }, [router, authLoading, isAuthenticated, isMounted, dbReady, isPublicHome]);
+  }, [router, authLoading, canAccess, isGuest, isMounted, dbReady, isPublicHome, pathname]);
 
   // During SSR / hydration or unauthenticated public homepage, render children directly
-  if (!isMounted || (isPublicHome && !isAuthenticated)) {
+  if (!isMounted || (isPublicHome && !canAccess)) {
     return <>{children}</>;
   }
 

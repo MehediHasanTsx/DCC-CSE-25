@@ -24,47 +24,46 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://dcc-cse-25.vercel.ap
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "DCC CSE | Dhaka City College Science & Engineering Student Portal",
+    default: "DCC CSE Student Dashboard | Dhaka City College",
     template: "%s | DCC CSE",
   },
   description:
-    "DCC CSE is the comprehensive student academic dashboard and resource portal for all Dhaka City College Science and Engineering (CSE) students. Track class schedules, National University CGPA, attendance, exam routines, seat plans, and study notes.",
+    "Manage your Dhaka City College CSE class routine, attendance, NU GPA and CGPA, exam schedules, seat plans, notes, and academic resources in one student dashboard.",
   manifest: "/manifest.json",
+  applicationName: "DCC CSE Student Dashboard",
   keywords: [
-    "DCC CSE",
-    "Dhaka City College Science and Engineering",
+    "DCC CSE Student Dashboard",
     "Dhaka City College CSE",
-    "DCC CSE notes",
-    "DCC CSE resources",
+    "DCC CSE class routine",
+    "National University CGPA Calculator",
+    "NU GPA Calculator",
+    "CSE attendance tracker",
+    "CSE notes and resources",
+    "student routine planner",
+    "Dhaka City College Science and Engineering",
     "DCC CSE 25",
-    "DCC CSE student resources",
-    "DCC CSE routine",
-    "DCC CSE syllabus",
-    "NU CGPA calculator",
     "student academic dashboard",
-    "attendance tracker",
   ],
   authors: [{ name: "Mehedi Hasan (Batch 25)" }],
   creator: "Mehedi Hasan (DCC CSE Batch 25)",
   publisher: "DCC CSE",
-  applicationName: "DCC CSE",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "DCC CSE | Dhaka City College Science & Engineering Student Portal",
+    title: "DCC CSE Student Dashboard | Dhaka City College",
     description:
-      "Academic management companion and resource portal for all Dhaka City College Science and Engineering (CSE) students. Track routines, attendance, CGPA, exam seat plans, and study notes.",
+      "Manage your Dhaka City College CSE class routine, attendance, NU GPA and CGPA, exam schedules, seat plans, notes, and academic resources in one student dashboard.",
     url: APP_URL,
-    siteName: "DCC CSE",
+    siteName: "DCC CSE Student Dashboard",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "DCC CSE | Dhaka City College Science & Engineering Student Portal",
+    title: "DCC CSE Student Dashboard | Dhaka City College",
     description:
-      "Academic management companion and resource portal for all Dhaka City College Science and Engineering (CSE) students.",
+      "Manage your Dhaka City College CSE class routine, attendance, NU GPA and CGPA, exam schedules, seat plans, notes, and academic resources in one student dashboard.",
   },
   robots: {
     index: true,
@@ -98,7 +97,7 @@ const jsonLd = {
     {
       "@type": "WebApplication",
       "@id": `${APP_URL}/#webapp`,
-      "name": "DCC CSE | Dhaka City College Science & Engineering Student Portal",
+      "name": "DCC CSE Student Dashboard | Dhaka City College",
       "alternateName": [
         "DCC CSE",
         "Dhaka City College Science and Engineering",
@@ -112,7 +111,7 @@ const jsonLd = {
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "All",
       "description":
-        "An academic management companion and resource hub for all Dhaka City College Science and Engineering (CSE) students. Features include routine planning, attendance tracking, NU CGPA calculations, exam seat plans, and course notes.",
+        "Manage your Dhaka City College CSE class routine, attendance, NU GPA and CGPA, exam schedules, seat plans, notes, and academic resources in one student dashboard.",
       "browserRequirements": "Requires JavaScript. Requires HTML5.",
       "offers": {
         "@type": "Offer",

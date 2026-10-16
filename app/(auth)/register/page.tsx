@@ -23,7 +23,7 @@ import { toast } from 'sonner';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register } = useAuth();
+  const { register, enterGuestMode } = useAuth();
 
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -284,6 +284,27 @@ export default function RegisterPage() {
                 )}
               </Button>
             </form>
+
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border/60" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">or test without account</span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                enterGuestMode();
+                router.push('/');
+              }}
+              className="w-full text-xs font-semibold gap-1.5 border-primary/20 text-primary hover:bg-primary/5 cursor-pointer"
+            >
+              ⚡ Continue as Guest (Demo)
+            </Button>
 
             <div className="mt-4 text-center text-sm text-muted-foreground">
               Already have an account?{' '}

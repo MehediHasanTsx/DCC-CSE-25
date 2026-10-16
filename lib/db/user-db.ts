@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
+import { indexedDB as fakeIndexedDB, IDBKeyRange as fakeIDBKeyRange } from 'fake-indexeddb';
 import type {
   Profile,
   Semester,
@@ -22,6 +23,8 @@ import type {
   RoutineActivity,
   DailyChecklistEntry,
 } from '@/types/database';
+
+export const GUEST_USER_ID = 'guest_temp';
 
 // ── Type for User-Scoped Database ─────────────────────
 
@@ -53,11 +56,20 @@ export type UserDatabase = Dexie & {
  * Create a new Dexie database instance scoped to a specific user.
  * Each user gets their own IndexedDB database: `dcc_cse_user_{userId}`
  *
- * This ensures complete data isolation between users on the same device.
+ * For guests, an in-memory database using fake-indexeddb is created so that
+ * no data is ever written to disk or browser IndexedDB.
  */
 export function createUserDatabase(userId: string): UserDatabase {
-  const dbName = `dcc_cse_user_${userId}`;
-  const db = new Dexie(dbName) as UserDatabase;
+  let db: UserDatabase;
+  if (userId === GUEST_USER_ID) {
+    db = new Dexie('dcc_cse_guest_memory', {
+      indexedDB: fakeIndexedDB,
+      IDBKeyRange: fakeIDBKeyRange,
+    }) as UserDatabase;
+  } else {
+    const dbName = `dcc_cse_user_${userId}`;
+    db = new Dexie(dbName) as UserDatabase;
+  }
 
   // Use the same schema as the original v2 database
   db.version(1).stores({
@@ -166,6 +178,13 @@ export function getActiveDb(): UserDatabase {
  */
 export function getActiveUserId(): string | null {
   return _activeUserId;
+}
+
+/**
+ * Check if the active session is a temporary guest session.
+ */
+export function isGuestSession(): boolean {
+  return _activeUserId === GUEST_USER_ID;
 }
 
 /**

@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,10 +15,14 @@ import {
   Smartphone,
   ShieldCheck,
   ArrowRight,
+  Sparkles,
   ListChecks,
 } from 'lucide-react';
+import { useAuth } from '@/components/providers/auth-provider';
 
 export function DccCse25Landing() {
+  const { enterGuestMode } = useAuth();
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20">
       {/* Navigation Header */}
@@ -34,12 +40,20 @@ export function DccCse25Landing() {
 
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
             <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-            <a href="#routines" className="hover:text-foreground transition-colors">Routines</a>
-            <a href="#resources" className="hover:text-foreground transition-colors">Notes & Resources</a>
+            <a href="#routines" className="hover:text-foreground transition-colors">Routine Planner</a>
+            <a href="#technology" className="hover:text-foreground transition-colors">Technology</a>
             <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
           </nav>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={enterGuestMode}
+              className="hidden sm:inline-flex text-xs font-semibold gap-1.5 border-primary/30 text-primary hover:bg-primary/10 cursor-pointer"
+            >
+              <Sparkles className="h-3.5 w-3.5" /> Continue as Guest
+            </Button>
             <Link href="/login">
               <Button variant="ghost" size="sm" className="text-sm font-medium">
                 Sign In
@@ -58,38 +72,47 @@ export function DccCse25Landing() {
       <section className="relative overflow-hidden pt-16 pb-20 md:pt-24 md:pb-28 border-b border-border/40">
         <div className="absolute inset-0 bg-linear-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
         <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center relative">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1 text-xs font-semibold text-primary mb-6 animate-fade-in">
+          {/* Eyebrow */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary mb-6 animate-fade-in">
             <span className="flex h-1.5 w-1.5 rounded-full bg-primary" />
-            Dhaka City College • Department of Computer Science & Engineering
+            Dhaka City College · Computer Science &amp; Engineering
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.15] mb-6">
-            DCC CSE
+          {/* Main H1 */}
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.15] mb-4">
+            DCC CSE Student Dashboard
             <span className="block text-xl sm:text-3xl lg:text-4xl font-semibold text-muted-foreground mt-2">
-              Dhaka City College Science & Engineering Student Portal
+              Your Academic Life, Organized in One Place
             </span>
           </h1>
 
+          {/* Hero Description */}
           <p className="mx-auto max-w-2xl text-base sm:text-lg text-muted-foreground leading-relaxed mb-8">
-            The dedicated academic dashboard and routine planner built for all students of
-            Dhaka City College Department of Computer Science & Engineering.
-            Track daily class schedules, National University CGPA, attendance thresholds,
-            exam seat plans, and semester resources with offline-first cloud sync.
+            Manage your academic life at Dhaka City College with the DCC CSE Student Dashboard. Access class routines, track attendance, calculate National University GPA and CGPA, check exam schedules and seat plans, and organize notes and lab projects from one convenient platform.
           </p>
 
+          {/* Hero CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 mb-12">
+            <Button
+              size="lg"
+              onClick={enterGuestMode}
+              className="w-full sm:w-auto gap-2 text-base font-semibold px-7 shadow-md cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Sparkles className="h-4 w-4" /> Continue as Guest (Instant Demo)
+            </Button>
             <Link href="/login" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto gap-2 text-base font-semibold px-7 shadow-md">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto text-base font-medium px-6 gap-2">
                 Open Student Dashboard <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
             <Link href="/register" className="w-full sm:w-auto">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto text-base font-medium px-6">
+              <Button variant="ghost" size="lg" className="w-full sm:w-auto text-base font-medium px-6">
                 Create Free Account
               </Button>
             </Link>
           </div>
 
+          {/* Quick Metrics Bar */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto pt-4 border-t border-border/40">
             <div className="p-3 rounded-lg bg-muted/40 border border-border/40 text-center">
               <p className="text-sm font-semibold">Offline PWA</p>
@@ -100,8 +123,8 @@ export function DccCse25Landing() {
               <p className="text-xs text-muted-foreground">4.00 Grade calculation</p>
             </div>
             <div className="p-3 rounded-lg bg-muted/40 border border-border/40 text-center">
-              <p className="text-sm font-semibold">All Semesters</p>
-              <p className="text-xs text-muted-foreground">Class & Lab Routines</p>
+              <p className="text-sm font-semibold">All 8 Semesters</p>
+              <p className="text-xs text-muted-foreground">Class &amp; lab routines</p>
             </div>
             <div className="p-3 rounded-lg bg-muted/40 border border-border/40 text-center">
               <p className="text-sm font-semibold">Seat Plan Search</p>
@@ -111,87 +134,93 @@ export function DccCse25Landing() {
         </div>
       </section>
 
-      {/* Core Academic Features */}
+      {/* Feature Highlights */}
       <section id="features" className="py-16 md:py-24 border-b border-border/40 bg-muted/20">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3">
-              Comprehensive Academic Management for DCC CSE Students
+              Everything DCC CSE Students Need to Stay Organized
             </h2>
             <p className="text-muted-foreground text-sm sm:text-base">
-              Everything Dhaka City College Computer Science & Engineering students need to manage coursework, exams, and attendance in one place.
+              Keep your academic information, schedules, and study resources organized in one place.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Feature 1 */}
             <Card className="border-border/60 hover:border-primary/40 transition-colors shadow-sm">
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-4">
                 <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-2">
                   <Calendar className="h-5 w-5" />
                 </div>
-                <CardTitle className="text-lg">Class Routine & Routine Planner</CardTitle>
-                <CardDescription>
-                  Semester class schedules for Section A and Section B, lab group rotations, and personal daily task checklists.
+                <CardTitle className="text-lg">Class Routine &amp; Daily Planner</CardTitle>
+                <CardDescription className="text-sm leading-relaxed">
+                  View class schedules, plan weekly activities, and manage daily study checklists.
                 </CardDescription>
               </CardHeader>
             </Card>
 
+            {/* Feature 2 */}
             <Card className="border-border/60 hover:border-primary/40 transition-colors shadow-sm">
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-4">
                 <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-2">
                   <CheckSquare className="h-5 w-5" />
                 </div>
                 <CardTitle className="text-lg">Attendance Tracker</CardTitle>
-                <CardDescription>
-                  Real-time percentage calculations configured to National University attendance criteria (75% collegiate, 60% non-collegiate minimums).
+                <CardDescription className="text-sm leading-relaxed">
+                  Record attended classes, monitor attendance percentages, and track remaining classes.
                 </CardDescription>
               </CardHeader>
             </Card>
 
+            {/* Feature 3 */}
             <Card className="border-border/60 hover:border-primary/40 transition-colors shadow-sm">
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-4">
                 <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-2">
                   <BarChart3 className="h-5 w-5" />
                 </div>
-                <CardTitle className="text-lg">CGPA & SGPA Calculator</CardTitle>
-                <CardDescription>
-                  Official National University 4.00 grading scale calculator. Compute credit-weighted semester GPAs, target forecasts, and scholarship rankings.
+                <CardTitle className="text-lg">NU GPA &amp; CGPA Calculator</CardTitle>
+                <CardDescription className="text-sm leading-relaxed">
+                  Calculate semester GPA and cumulative CGPA using the applicable National University grading scale.
                 </CardDescription>
               </CardHeader>
             </Card>
 
+            {/* Feature 4 */}
             <Card className="border-border/60 hover:border-primary/40 transition-colors shadow-sm">
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-4">
                 <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-2">
                   <GraduationCap className="h-5 w-5" />
                 </div>
-                <CardTitle className="text-lg">Exam Routines & Seat Plans</CardTitle>
-                <CardDescription>
-                  Midterm and semester final timetables with room allotments. Quick roll search to locate your exam room and bench allocation.
+                <CardTitle className="text-lg">Exam Routine &amp; Seat Plans</CardTitle>
+                <CardDescription className="text-sm leading-relaxed">
+                  Organize exam dates, check schedules, and find available exam seat plan information.
                 </CardDescription>
               </CardHeader>
             </Card>
 
+            {/* Feature 5 */}
             <Card id="resources" className="border-border/60 hover:border-primary/40 transition-colors shadow-sm">
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-4">
                 <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-2">
                   <StickyNote className="h-5 w-5" />
                 </div>
-                <CardTitle className="text-lg">DCC CSE Notes & Resources</CardTitle>
-                <CardDescription>
-                  Lecture notes, subject syllabi, assignments, and study materials curated for Dhaka City College CSE coursework.
+                <CardTitle className="text-lg">CSE Notes &amp; Study Resources</CardTitle>
+                <CardDescription className="text-sm leading-relaxed">
+                  Keep lecture notes, assignments, and subject-wise learning materials accessible.
                 </CardDescription>
               </CardHeader>
             </Card>
 
+            {/* Feature 6 */}
             <Card className="border-border/60 hover:border-primary/40 transition-colors shadow-sm">
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-4">
                 <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-2">
                   <FlaskConical className="h-5 w-5" />
                 </div>
-                <CardTitle className="text-lg">Lab Projects & Fees</CardTitle>
-                <CardDescription>
-                  Collaborative repository for CSE lab programming assignments, semester fee installment records, and payment tracking.
+                <CardTitle className="text-lg">Lab Projects &amp; Academic Records</CardTitle>
+                <CardDescription className="text-sm leading-relaxed">
+                  Organize programming lab projects, academic records, and semester fee information.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -199,60 +228,51 @@ export function DccCse25Landing() {
         </div>
       </section>
 
-      {/* Routine Showcase & Practical Information */}
+      {/* Routine Planner Section */}
       <section id="routines" className="py-16 md:py-20 border-b border-border/40">
         <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div>
               <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary uppercase tracking-wider mb-3">
-                <ListChecks className="h-4 w-4" /> Academic Routine Planner
+                <ListChecks className="h-4 w-4" /> Routine Planner
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
-                Stay Organized for Every Dhaka City College CSE Class
+                Plan Your Classes, Study Time, and Daily Routine
               </h2>
               <p className="text-muted-foreground text-sm sm:text-base leading-relaxed mb-6">
-                Never miss a lecture or practical session. The DCC CSE routine planner automatically loads your section&apos;s schedule (Sunday through Thursday), lab groups, and teachers, alongside your personalized study habit checklist.
+                Stay on top of your CSE classes and personal goals with an academic routine planner. Review class schedules, create daily plans, build weekly activity routines, and check off completed tasks to develop consistent study habits.
               </p>
-              <ul className="space-y-3 text-sm text-muted-foreground mb-8">
-                <li className="flex items-start gap-2.5">
-                  <div className="h-5 w-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">✓</div>
-                  <span>Pre-configured class schedules with room numbers & teacher assignments</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <div className="h-5 w-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">✓</div>
-                  <span>Instant roll-based seat plan locator for semester exams</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <div className="h-5 w-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">✓</div>
-                  <span>Cloud synchronization across mobile phone and desktop browsers</span>
-                </li>
-              </ul>
-              <Link href="/login">
-                <Button className="gap-2">
-                  View Class Routine <ArrowRight className="h-4 w-4" />
+              <div className="flex flex-wrap gap-3">
+                <Button onClick={enterGuestMode} className="gap-2 cursor-pointer">
+                  <Sparkles className="h-4 w-4" /> Try Routine Planner as Guest
                 </Button>
-              </Link>
+                <Link href="/login">
+                  <Button variant="outline" className="gap-2">
+                    View Class Routine <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
 
             <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-border/60">
                 <div className="flex items-center gap-2">
                   <GraduationCap className="h-5 w-5 text-primary" />
-                  <span className="font-semibold text-sm">DCC CSE • Academic Schedule</span>
+                  <span className="font-semibold text-sm">DCC CSE • Class Schedule</span>
                 </div>
-                <Badge variant="secondary" className="text-xs">Sections A & B</Badge>
+                <Badge variant="secondary" className="text-xs">Sections A &amp; B</Badge>
               </div>
               <div className="space-y-2.5 text-xs text-muted-foreground">
                 <div className="p-3 rounded-lg bg-muted/40 flex justify-between items-center">
                   <div>
-                    <p className="font-semibold text-foreground">Computer Algorithms & Lab</p>
-                    <p>CSE-311 • Section A & B</p>
+                    <p className="font-semibold text-foreground">Computer Algorithms &amp; Lab</p>
+                    <p>CSE-311 • Section A &amp; B</p>
                   </div>
                   <Badge variant="outline" className="text-[10px]">4 Credits</Badge>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/40 flex justify-between items-center">
                   <div>
-                    <p className="font-semibold text-foreground">Microprocessor & Assembly</p>
+                    <p className="font-semibold text-foreground">Microprocessor &amp; Assembly</p>
                     <p>CSE-312 • Hardware Lab</p>
                   </div>
                   <Badge variant="outline" className="text-[10px]">4 Credits</Badge>
@@ -270,14 +290,14 @@ export function DccCse25Landing() {
         </div>
       </section>
 
-      {/* Technical Highlights & PWA */}
-      <section className="py-16 md:py-20 border-b border-border/40 bg-muted/20">
+      {/* Technology Section */}
+      <section id="technology" className="py-16 md:py-20 border-b border-border/40 bg-muted/20">
         <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
-            Built with Modern Web Technologies
+            Access Your Academic Dashboard Across Your Devices
           </h2>
           <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto mb-12">
-            Engineered as a Progressive Web App (PWA) with client-side persistence and secure synchronization.
+            Use a Progressive Web App experience designed to keep your academic information accessible. With supported offline features and local data storage, you can manage eligible records even when your internet connection is unavailable. Supported synchronization helps keep your data consistent across devices.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
@@ -290,76 +310,85 @@ export function DccCse25Landing() {
             </div>
             <div className="p-5 rounded-xl border border-border bg-card">
               <Cloud className="h-6 w-6 text-primary mb-3" />
-              <h3 className="font-semibold text-base mb-1">Local-First & Cloud Sync</h3>
+              <h3 className="font-semibold text-base mb-1">Local-First Storage</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                IndexedDB ensures all your data is instantly accessible offline. Automatically syncs to cloud storage when online.
+                Browser IndexedDB ensures all your coursework is instantly accessible offline. Automatically syncs when internet connects.
               </p>
             </div>
             <div className="p-5 rounded-xl border border-border bg-card">
               <ShieldCheck className="h-6 w-6 text-primary mb-3" />
-              <h3 className="font-semibold text-base mb-1">Privacy & Data Control</h3>
+              <h3 className="font-semibold text-base mb-1">Privacy &amp; Data Control</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Your academic data remains private to your account. Export and import complete JSON backups anytime.
+                Your academic data remains private to your account. No institutional records are scraped, and data is never sold.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Frequently Asked Questions (FAQ) */}
+      {/* FAQ Section */}
       <section id="faq" className="py-16 md:py-20 border-b border-border/40">
         <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3">
-              Frequently Asked Questions about DCC CSE
+              Frequently Asked Questions
             </h2>
             <p className="text-muted-foreground text-sm">
-              Answers regarding Dhaka City College Science and Engineering resources and student portal usage.
+              Answers regarding Dhaka City College CSE resources and dashboard usage.
             </p>
           </div>
 
           <div className="space-y-4">
             <Card className="border-border/60">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold">What is DCC CSE?</CardTitle>
+                <CardTitle className="text-base font-semibold">What is the DCC CSE Student Dashboard?</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground leading-relaxed pt-1">
-                  DCC CSE is an academic management web application and utility portal built for students across all batches and semesters of Dhaka City College Department of Computer Science & Engineering. It centralizes class routines, attendance tracking, CGPA calculations, exam seat plans, and study notes.
+                  The DCC CSE Student Dashboard is an academic management platform designed for Computer Science and Engineering students at Dhaka City College. It brings together class routines, attendance tracking, GPA and CGPA calculations, exam information, study resources, and academic planning tools.
                 </CardDescription>
               </CardHeader>
             </Card>
 
             <Card className="border-border/60">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold">Who can use this portal?</CardTitle>
+                <CardTitle className="text-base font-semibold">Who can use the DCC CSE dashboard?</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground leading-relaxed pt-1">
-                  The portal is designed for all Dhaka City College Computer Science & Engineering students across any semester (Semester 1 through 8). Any DCC CSE student can create a free account to manage their coursework.
+                  The platform is designed primarily for Dhaka City College CSE students. Students can create an account to access the academic tools and features available to them.
                 </CardDescription>
               </CardHeader>
             </Card>
 
             <Card className="border-border/60">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold">Where can I find DCC CSE notes and student resources?</CardTitle>
+                <CardTitle className="text-base font-semibold">Can I calculate my National University GPA and CGPA?</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground leading-relaxed pt-1">
-                  After logging in to the portal, the Notes and Lab Projects modules offer organized study materials, course outlines, lecture notes, and lab project guides specifically prepared for Dhaka City College CSE coursework.
+                  The dashboard includes GPA and CGPA calculation tools based on the applicable National University grading scale. Enter your relevant academic results to calculate your semester GPA and cumulative CGPA.
                 </CardDescription>
               </CardHeader>
             </Card>
 
             <Card className="border-border/60">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold">How does the National University CGPA calculator work?</CardTitle>
+                <CardTitle className="text-base font-semibold">Can I track attendance and class routines?</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground leading-relaxed pt-1">
-                  The calculator uses the official National University Bangladesh 4.00 grading scale. You can enter course credits and earned letter grades to compute exact semester SGPA and cumulative CGPA across all completed semesters.
+                  Yes. The attendance tracker helps you record classes and monitor attendance, while the class routine section helps you review your schedule and organize your academic activities.
                 </CardDescription>
               </CardHeader>
             </Card>
 
             <Card className="border-border/60">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold">Who developed DCC CSE?</CardTitle>
+                <CardTitle className="text-base font-semibold">Does the dashboard support offline use?</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground leading-relaxed pt-1">
-                  DCC CSE was developed by Mehedi Hasan, a student of DCC CSE Batch 25, as an open-source academic companion to help all Dhaka City College CSE students organize their daily academic lives.
+                  The app is designed with Progressive Web App and local-storage capabilities. Some features can work offline, depending on which data has been saved and which functionality is available without a connection.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-border/60">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-semibold">Where can I find DCC CSE notes, assignments, and lab resources?</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground leading-relaxed pt-1">
+                  Sign in to access the notes and resources available through the dashboard, including relevant study materials, assignments, and lab project resources.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -367,23 +396,30 @@ export function DccCse25Landing() {
         </div>
       </section>
 
-      {/* Call to Action Footer Section */}
-      <section className="py-14 md:py-18 bg-primary/5">
+      {/* Closing CTA */}
+      <section className="py-16 md:py-20 bg-primary/5">
         <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
-            Ready to Manage Your Academic Journey?
+            Make Your CSE Student Life More Organized
           </h2>
           <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto mb-8">
-            Access your Dhaka City College CSE routine, track attendance, and plan your study schedule today.
+            Spend less time managing scattered academic information and more time focusing on your studies. Create your account to organize your class routine, attendance, results, and study plans with DCC CSE.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Button
+              size="lg"
+              onClick={enterGuestMode}
+              className="w-full sm:w-auto px-8 gap-2 cursor-pointer font-semibold"
+            >
+              <Sparkles className="h-4 w-4" /> Continue as Guest
+            </Button>
             <Link href="/register" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto px-8">
-                Create Account
+              <Button variant="outline" size="lg" className="w-full sm:w-auto px-8">
+                Get Started →
               </Button>
             </Link>
             <Link href="/login" className="w-full sm:w-auto">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto px-8">
+              <Button variant="ghost" size="lg" className="w-full sm:w-auto px-8">
                 Sign In
               </Button>
             </Link>
@@ -398,17 +434,20 @@ export function DccCse25Landing() {
             <div className="text-center md:text-left">
               <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
                 <GraduationCap className="h-4 w-4 text-primary" />
-                <span className="font-bold text-sm tracking-tight">DCC CSE</span>
+                <span className="font-bold text-sm tracking-tight">DCC CSE Student Dashboard</span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Dhaka City College Science & Engineering • Student Academic Portal
+                Dhaka City College Science &amp; Engineering • Student Academic Portal
               </p>
             </div>
 
             <div className="flex items-center gap-6 text-xs text-muted-foreground">
+              <button onClick={enterGuestMode} className="hover:text-foreground transition-colors cursor-pointer">
+                Guest Mode
+              </button>
               <Link href="/login" className="hover:text-foreground transition-colors">Sign In</Link>
               <Link href="/register" className="hover:text-foreground transition-colors">Register</Link>
-              <Link href="/disclaimer" className="hover:text-foreground transition-colors">Disclaimer & Terms</Link>
+              <Link href="/disclaimer" className="hover:text-foreground transition-colors">Disclaimer &amp; Terms</Link>
             </div>
           </div>
 

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useRef, useSyncExternalStore } from 'react';
 import { useAuth } from './auth-provider';
-import { setActiveUser, clearActiveUser } from '@/lib/db/user-db';
+import { setActiveUser, clearActiveUser, GUEST_USER_ID } from '@/lib/db/user-db';
 import { seedDatabase } from '@/lib/db/seed';
 import { cloudSyncService } from '@/lib/services/cloud-sync.service';
 import { profileService } from '@/lib/services/profile.service';
@@ -77,7 +77,7 @@ async function restoreFromCloud(): Promise<void> {
 }
 
 export function DatabaseProvider({ children }: { children: React.ReactNode }) {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, isGuest } = useAuth();
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const isMounted = useIsMounted();
@@ -86,14 +86,14 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isMounted || authLoading) return;
 
-    const userId = user?.id ?? null;
+    const activeSessionId = user?.id ?? (isGuest ? GUEST_USER_ID : null);
 
-    if (userId === prevUserIdRef.current && isReady) return;
-    prevUserIdRef.current = userId;
+    if (activeSessionId === prevUserIdRef.current && isReady) return;
+    prevUserIdRef.current = activeSessionId;
 
     let cancelled = false;
 
-    if (!userId) {
+    if (!activeSessionId) {
       clearActiveUser();
       cloudSyncService.cancelPendingUpload();
       setTimeout(() => { if (!cancelled) setIsReady(true); }, 0);
@@ -102,7 +102,43 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
 
     setTimeout(() => { if (!cancelled) setIsReady(false); }, 0);
 
-    setActiveUser(userId);
+    // Guest Mode Session
+    if (activeSessionId === GUEST_USER_ID) {
+      setActiveUser(GUEST_USER_ID);
+      seedDatabase()
+        .then(async () => {
+          if (cancelled) return;
+          const hasProfile = await profileService.exists();
+          if (!hasProfile) {
+            await profileService.create({
+              fullName: 'Guest Student',
+              university: 'Dhaka City College',
+              department: 'Computer Science & Engineering',
+              studentId: 'CSE-DEMO',
+              rollNumber: '0000',
+              registrationNumber: '0000000000',
+              batch: '25',
+              session: '2021-22',
+              phoneNumber: '01700000000',
+              currentSemester: 5,
+            });
+          }
+          if (!cancelled) {
+            setIsReady(true);
+            setError(null);
+          }
+        })
+        .catch((err) => {
+          console.error('Guest database initialization failed:', err);
+          if (!cancelled) {
+            setError(err instanceof Error ? err : new Error(String(err)));
+          }
+        });
+      return () => { cancelled = true; };
+    }
+
+    // Authenticated User Session
+    setActiveUser(activeSessionId);
     seedDatabase()
       .then(async () => {
         if (cancelled) return;
@@ -126,7 +162,7 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
       });
 
     return () => { cancelled = true; };
-  }, [user, authLoading, isMounted]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, authLoading, isGuest, isMounted]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // During SSR, render children directly to avoid hydration mismatch
   if (!isMounted) {

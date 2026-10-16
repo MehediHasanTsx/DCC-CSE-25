@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useProfile } from '@/lib/hooks/useProfile';
@@ -16,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Settings, Moon, Sun, Monitor, Download, Upload, Trash2, User, GraduationCap, AlertTriangle, LogOut, Shield, Camera, X } from 'lucide-react';
+import { Settings, Moon, Sun, Monitor, Download, Upload, Trash2, User, GraduationCap, AlertTriangle, LogOut, Shield, Camera, X, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { getGravatarUrl } from '@/lib/utils/formatters';
 import type { Settings as SettingsType } from '@/types/database';
@@ -24,7 +25,7 @@ import type { Settings as SettingsType } from '@/types/database';
 export default function SettingsPage() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, logout, isGuest, exitGuestMode } = useAuth();
   const { profile, reload: reloadProfile } = useProfile();
   const [settings, setSettings] = useState<SettingsType | null>(null);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
@@ -115,6 +116,41 @@ export default function SettingsPage() {
             >
               <LogOut className="mr-2 h-4 w-4" />
               Logout
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Guest Session Card */}
+      {isGuest && (
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2 text-amber-900 dark:text-amber-200">
+              <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" /> Guest Session
+            </CardTitle>
+            <CardDescription>
+              You are exploring DCC CSE in temporary Guest Mode. Changes are stored in memory and are never saved permanently or synced.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Link href="/register" className="flex-1">
+                <Button size="sm" className="w-full">Create Free Account</Button>
+              </Link>
+              <Link href="/login" className="flex-1">
+                <Button size="sm" variant="outline" className="w-full">Sign In</Button>
+              </Link>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                exitGuestMode();
+                router.push('/');
+              }}
+              className="w-full text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+            >
+              Exit Guest Demo
             </Button>
           </CardContent>
         </Card>

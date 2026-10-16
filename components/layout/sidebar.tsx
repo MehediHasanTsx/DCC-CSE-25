@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { SemesterSwitcher } from '@/components/shared/semester-switcher';
+import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
   BookOpen,
@@ -23,6 +24,7 @@ import {
   ShieldCheck,
   Award,
   ListChecks,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useProfile } from '@/lib/hooks/useProfile';
@@ -72,7 +74,7 @@ const NAV_SECTIONS = [
 
 export function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
-  const { isAdmin, user } = useAuth();
+  const { isAdmin, user, isGuest } = useAuth();
   const { profile } = useProfile();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
@@ -186,14 +188,38 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             ))}
           </nav>
 
-          {/* Bottom Section: Cloud Sync, Settings, Developer Credit */}
+          {/* Bottom Section: Cloud Sync / Guest Prompt, Settings, Developer Credit */}
           <div className="pt-2 pb-8 space-y-3">
             <Separator className="my-2" />
 
-            {/* Cloud Sync Status */}
-            <div>
-              <CloudSyncStatus variant="card" />
-            </div>
+            {/* Cloud Sync Status or Guest Call-to-Action */}
+            {isGuest ? (
+              <div className="rounded-xl border border-primary/20 bg-linear-to-b from-primary/10 to-primary/5 p-3 space-y-2 shadow-xs">
+                <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground">
+                  <Sparkles className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span>Save Academic Records</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Log in to keep your attendance, routines, and CGPA synced across all devices.
+                </p>
+                <div className="flex gap-1.5 pt-0.5">
+                  <Link href="/login" onClick={onNavigate} className="flex-1">
+                    <Button size="sm" variant="default" className="w-full text-xs h-7 font-medium">
+                      Log In
+                    </Button>
+                  </Link>
+                  <Link href="/register" onClick={onNavigate} className="flex-1">
+                    <Button size="sm" variant="outline" className="w-full text-xs h-7 font-medium">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <CloudSyncStatus variant="card" />
+              </div>
+            )}
 
             {/* Settings */}
             <div>

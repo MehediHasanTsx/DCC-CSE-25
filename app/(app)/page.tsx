@@ -52,14 +52,14 @@ import { toast } from 'sonner';
 import type { Assignment, ExamRoutineItem, RoutineSlot, Subject, DayOfWeek, AttendanceStatus, RoutineActivity } from '@/types/database';
 
 export default function DashboardPage() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isGuest, isLoading } = useAuth();
 
   // For unauthenticated visitors and crawlers (including SSR), render the SEO-rich public landing page
-  if (!isAuthenticated && !isLoading) {
+  if (!isAuthenticated && !isGuest && !isLoading) {
     return <DccCse25Landing />;
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !isGuest) {
     return <DccCse25Landing />;
   }
 
