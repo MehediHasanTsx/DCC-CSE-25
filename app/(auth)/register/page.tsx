@@ -329,14 +329,6 @@ export default function RegisterPage() {
             </Link>
           </p>
         </div>
-
-        <p className="mt-4 text-center text-[0.65rem] text-muted-foreground/50">
-          Built with ❤️ by{' '}
-          <a href="https://api.whatsapp.com/send/?phone=8801521743944" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-muted-foreground transition-colors">
-            Mehedi Hasan
-          </a>{' '}
-          (Batch 25)
-        </p>
       </div>
 
       {/* Credential Reminder Modal */}

@@ -33,7 +33,7 @@ export function DccCse25Landing() {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <span className="text-lg font-bold tracking-tight block leading-none">DCC CSE</span>
+              <span className="text-lg font-bold tracking-tight block leading-none">DCC CSE 25</span>
               <span className="text-[10px] text-muted-foreground font-medium">Dhaka City College</span>
             </div>
           </Link>
@@ -75,20 +75,20 @@ export function DccCse25Landing() {
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary mb-6 animate-fade-in">
             <span className="flex h-1.5 w-1.5 rounded-full bg-primary" />
-            Dhaka City College · Computer Science &amp; Engineering
+            Dhaka City College · Computer Science &amp; Engineering (Batch 25)
           </div>
 
           {/* Main H1 */}
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.15] mb-4">
-            DCC CSE Student Dashboard
+            DCC CSE 25
             <span className="block text-xl sm:text-3xl lg:text-4xl font-semibold text-muted-foreground mt-2">
-              Your Academic Life, Organized in One Place
+              Student Academic Dashboard | Dhaka City College
             </span>
           </h1>
 
           {/* Hero Description */}
           <p className="mx-auto max-w-2xl text-base sm:text-lg text-muted-foreground leading-relaxed mb-8">
-            Manage your academic life at Dhaka City College with the DCC CSE Student Dashboard. Access class routines, track attendance, calculate National University GPA and CGPA, check exam schedules and seat plans, and organize notes and lab projects from one convenient platform.
+            Manage your DCC CSE academic life in one place. Track attendance, calculate GPA and CGPA, view exam routines and results, manage fees, and organize your study plans.
           </p>
 
           {/* Hero CTAs */}
@@ -116,7 +116,7 @@ export function DccCse25Landing() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto pt-4 border-t border-border/40">
             <div className="p-3 rounded-lg bg-muted/40 border border-border/40 text-center">
               <p className="text-sm font-semibold">Offline PWA</p>
-              <p className="text-xs text-muted-foreground">Works without internet</p>
+              <p className="text-xs text-muted-foreground">Saved data works offline</p>
             </div>
             <div className="p-3 rounded-lg bg-muted/40 border border-border/40 text-center">
               <p className="text-sm font-semibold">NU CGPA Scale</p>
@@ -312,7 +312,7 @@ export function DccCse25Landing() {
               <Cloud className="h-6 w-6 text-primary mb-3" />
               <h3 className="font-semibold text-base mb-1">Local-First Storage</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Browser IndexedDB ensures all your coursework is instantly accessible offline. Automatically syncs when internet connects.
+                Browser IndexedDB keeps your saved routines, marks, and notes accessible offline. Data syncs when an internet connection is available.
               </p>
             </div>
             <div className="p-5 rounded-xl border border-border bg-card">
@@ -379,7 +379,16 @@ export function DccCse25Landing() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold">Does the dashboard support offline use?</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground leading-relaxed pt-1">
-                  The app is designed with Progressive Web App and local-storage capabilities. Some features can work offline, depending on which data has been saved and which functionality is available without a connection.
+                  Yes. Once you have logged in on your device (or when using Guest Mode), your academic records—such as class routines, attendance, exam schedules, CGPA data, and personal notes—are saved locally in browser IndexedDB. You can open and use your saved dashboard even without an active internet connection. Any changes you make will automatically synchronize with cloud storage when you are back online.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-border/60">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-semibold">Can I access or log in while offline?</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground leading-relaxed pt-1">
+                  If you have previously signed in on that device, your session and saved data remain available offline, and you can log straight into your saved offline profile. For initial account creation or the very first sign-in on a new device, an internet connection is needed to download your data, or you can explore offline immediately using Guest Mode.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -451,21 +460,9 @@ export function DccCse25Landing() {
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-border/40 text-center text-xs text-muted-foreground/80 space-y-1">
-            <p>
-              Built with ❤️ by{' '}
-              <a
-                href="https://api.whatsapp.com/send/?phone=8801521743944"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-foreground"
-              >
-                Mehedi Hasan
-              </a>{' '}
-              (Batch 25) for all Dhaka City College CSE students.
-            </p>
-            <p className="text-[11px] text-muted-foreground/60">
-              DCC CSE is an independent open-source student academic resource companion. Not affiliated with Dhaka City College or National University.
+          <div className="mt-8 pt-6 border-t border-border/40 text-center text-xs text-muted-foreground/60 space-y-1">
+            <p className="text-[11px]">
+              DCC CSE 25 is an independent open-source student academic resource companion. Not affiliated with Dhaka City College or National University.
             </p>
           </div>
         </div>

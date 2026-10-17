@@ -437,18 +437,6 @@ export default function ForgotPasswordPage() {
             </>
           )}
         </Card>
-
-        <p className="mt-6 text-center text-[0.65rem] text-muted-foreground/50">
-          Built by{' '}
-          <a
-            href="https://api.whatsapp.com/send/?phone=8801521743944&text&type=phone_number&app_absent=0"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline underline-offset-2 hover:text-muted-foreground transition-colors"
-          >
-            Mehedi Hasan
-          </a>
-        </p>
       </div>
     </div>
   );

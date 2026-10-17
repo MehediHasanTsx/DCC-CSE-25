@@ -1,7 +1,7 @@
 {
-  "name": "DCC CSE",
-  "short_name": "DCC CSE",
-  "description": "Student academic management portal & routine dashboard for all Dhaka City College Science and Engineering (CSE) students.",
+  "name": "DCC CSE 25",
+  "short_name": "DCC CSE 25",
+  "description": "Manage your DCC CSE academic life in one place. Track attendance, calculate GPA and CGPA, view exam routines and results, manage fees, and organize your study plans.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#090d16",

@@ -8,13 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { GraduationCap, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { GraduationCap, Eye, EyeOff, Loader2, WifiOff, HardDriveDownload } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, enterGuestMode } = useAuth();
-  const [username, setUsername] = useState('');
+  const { login, enterGuestMode, cachedUser, loginOffline, isOffline } = useAuth();
+  const [username, setUsername] = useState(cachedUser?.username || '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -30,13 +30,26 @@ export default function LoginPage() {
       if (result.error) {
         setError(result.error);
       } else {
-        toast.success('Welcome back!');
+        if (result.isOffline) {
+          toast.success('Offline mode: Signed in with locally saved data.');
+        } else {
+          toast.success('Welcome back!');
+        }
         router.replace('/');
       }
     } catch {
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOfflineAccess = () => {
+    if (!cachedUser) return;
+    const ok = loginOffline(cachedUser);
+    if (ok) {
+      toast.success(`Loaded saved offline dashboard for @${cachedUser.username}`);
+      router.replace('/');
     }
   };
 
@@ -60,6 +73,35 @@ export default function LoginPage() {
             <CardDescription>Enter your credentials to continue</CardDescription>
           </CardHeader>
           <CardContent>
+            {isOffline && (
+              <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300 space-y-2">
+                <div className="flex items-center gap-2 font-semibold">
+                  <WifiOff className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                  <span>Offline Mode Active</span>
+                </div>
+                {cachedUser ? (
+                  <div className="space-y-2 pt-1 border-t border-amber-500/20">
+                    <p className="text-[11px] leading-relaxed">
+                      Saved account <span className="font-bold text-foreground">@{cachedUser.username}</span> is available on this device.
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleOfflineAccess}
+                      className="w-full text-xs font-semibold gap-1.5 h-8 bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-500 dark:hover:bg-amber-600 shadow-sm cursor-pointer"
+                    >
+                      <HardDriveDownload className="h-3.5 w-3.5" />
+                      Open Saved Offline Dashboard
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-[11px] leading-relaxed">
+                    No account has been signed in on this device yet. First-time sign-in requires an internet connection, or you can explore with Guest Mode below.
+                  </p>
+                )}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
                 <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -114,10 +156,10 @@ export default function LoginPage() {
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
+                    {isOffline ? 'Opening offline...' : 'Signing in...'}
                   </>
                 ) : (
-                  'Login'
+                  isOffline ? 'Login (Offline Mode)' : 'Login'
                 )}
               </Button>
 
@@ -175,14 +217,6 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
-
-        <p className="mt-4 text-center text-[0.65rem] text-muted-foreground/50">
-          Built with ❤️ by{' '}
-          <a href="https://api.whatsapp.com/send/?phone=8801521743944" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-muted-foreground transition-colors">
-            Mehedi Hasan
-          </a>{' '}
-          (Batch 25)
-        </p>
       </div>
     </div>
   );

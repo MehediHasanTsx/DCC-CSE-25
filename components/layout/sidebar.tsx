@@ -311,23 +311,15 @@ export function Sidebar({ onNavigate, onClose }: SidebarProps) {
           </Link>
         </div>
 
-        {/* Developer Credit & Disclaimer */}
-        <div className="px-2 pt-0.5 space-y-0.5">
-          <p className="text-[0.68rem] text-muted-foreground/70 text-center">
-            Built by{' '}
-            <a
-              href="https://api.whatsapp.com/send/?phone=8801521743944"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline underline-offset-2 hover:text-foreground transition-colors font-medium"
-            >
-              Mehedi Hasan
-            </a>{' '}
-            (Batch 25)
-          </p>
-          <p className="text-[0.62rem] text-muted-foreground/50 text-center">
-            Independent Project • <Link href="/disclaimer" onClick={onNavigate} className="hover:underline">Disclaimer</Link>
-          </p>
+        {/* Footer Disclaimer */}
+        <div className="px-2 pt-1 text-center">
+          <Link
+            href="/disclaimer"
+            onClick={onNavigate}
+            className="text-[0.62rem] text-muted-foreground/50 hover:text-muted-foreground hover:underline transition-colors"
+          >
+            Independent Project • Disclaimer
+          </Link>
         </div>
       </div>
     </div>

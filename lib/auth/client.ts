@@ -43,11 +43,15 @@ interface ResetPasswordResponse {
 }
 
 async function handleResponse<T>(response: Response): Promise<T & { error?: string }> {
-  const data = await response.json();
-  if (!response.ok && !data.error) {
-    return { ...data, error: 'An unexpected error occurred.' };
+  try {
+    const data = await response.json();
+    if (!response.ok && !data.error) {
+      return { ...data, error: 'An unexpected error occurred.' };
+    }
+    return data;
+  } catch {
+    return { error: 'Failed to process server response.' } as T & { error?: string };
   }
-  return data;
 }
 
 export const authClient = {
@@ -61,12 +65,16 @@ export const authClient = {
     password: string;
     confirmPassword: string;
   }): Promise<AuthResponse> {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    return handleResponse<AuthResponse>(response);
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return await handleResponse<AuthResponse>(response);
+    } catch {
+      return { error: 'Network unavailable. Please check your internet connection.' };
+    }
   },
 
   /**
@@ -76,64 +84,88 @@ export const authClient = {
     username: string;
     password: string;
   }): Promise<AuthResponse> {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    return handleResponse<AuthResponse>(response);
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return await handleResponse<AuthResponse>(response);
+    } catch {
+      return { error: 'Network unavailable. Please check your internet connection.' };
+    }
   },
 
   /**
    * Log out the current session.
    */
   async logout(): Promise<{ success?: boolean; error?: string }> {
-    const response = await fetch('/api/auth/logout', {
-      method: 'POST',
-    });
-    return handleResponse(response);
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+      return await handleResponse(response);
+    } catch {
+      return { success: true };
+    }
   },
 
   /**
    * Get the currently authenticated user.
    */
   async getMe(): Promise<AuthResponse> {
-    const response = await fetch('/api/auth/me');
-    return handleResponse<AuthResponse>(response);
+    try {
+      const response = await fetch('/api/auth/me');
+      return await handleResponse<AuthResponse>(response);
+    } catch {
+      return { error: 'Network unavailable or offline' };
+    }
   },
 
   /**
    * Check if a username is available.
    */
   async checkUsername(username: string): Promise<UsernameCheckResponse> {
-    const response = await fetch(
-      `/api/auth/check-username?u=${encodeURIComponent(username)}`
-    );
-    return handleResponse<UsernameCheckResponse>(response);
+    try {
+      const response = await fetch(
+        `/api/auth/check-username?u=${encodeURIComponent(username)}`
+      );
+      return await handleResponse<UsernameCheckResponse>(response);
+    } catch {
+      return { available: false, error: 'Network unavailable' };
+    }
   },
 
   /**
    * Request password reset OTP.
    */
   async forgotPassword(data: { username: string }): Promise<ForgotPasswordResponse> {
-    const response = await fetch('/api/auth/forgot-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    return handleResponse<ForgotPasswordResponse>(response);
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return await handleResponse<ForgotPasswordResponse>(response);
+    } catch {
+      return { error: 'Network unavailable. Please check your internet connection.' };
+    }
   },
 
   /**
    * Verify the 6-digit OTP.
    */
   async verifyOtp(data: { username: string; otp: string }): Promise<VerifyOtpResponse> {
-    const response = await fetch('/api/auth/verify-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    return handleResponse<VerifyOtpResponse>(response);
+    try {
+      const response = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return await handleResponse<VerifyOtpResponse>(response);
+    } catch {
+      return { error: 'Network unavailable. Please check your internet connection.' };
+    }
   },
 
   /**
@@ -144,11 +176,15 @@ export const authClient = {
     newPassword: string;
     confirmPassword: string;
   }): Promise<ResetPasswordResponse> {
-    const response = await fetch('/api/auth/reset-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    return handleResponse<ResetPasswordResponse>(response);
+    try {
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return await handleResponse<ResetPasswordResponse>(response);
+    } catch {
+      return { error: 'Network unavailable. Please check your internet connection.' };
+    }
   },
 };
