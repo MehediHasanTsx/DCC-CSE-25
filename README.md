@@ -1,4 +1,4 @@
-# 🎓 DCC CSE — Dhaka City College Science and Engineering Student Academic Dashboard
+# 🎓 DCC CSE — Dhaka City College Computer Science and Engineering Student Academic Dashboard
 
 [![Live Web App](https://img.shields.io/badge/Live_App-dcc--cse--25.vercel.app-0070f3?style=for-the-badge&logo=vercel&logoColor=white)](https://dcc-cse-25.vercel.app/)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3.0-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
@@ -32,7 +32,7 @@ Live Web App: **[https://dcc-cse-25.vercel.app/](https://dcc-cse-25.vercel.app/)
 ## 🌐 Target Audience & Purpose
 
 * **Institution:** Dhaka City College (DCC)
-* **Department:** Computer Science & Engineering (CSE) / Science & Engineering
+* **Department:** Computer Science & Engineering (CSE)
 * **Audience:** All students of DCC CSE across all semesters (1st through 8th)
 * **Developer:** Mehedi Hasan (Batch 25)
 * **Goal:** Eliminate scattered spreadsheets and missed deadlines by giving every student a unified, offline-capable dashboard.

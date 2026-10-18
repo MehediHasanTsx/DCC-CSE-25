@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     "CSE attendance tracker",
     "CSE notes and resources",
     "student routine planner",
-    "Dhaka City College Science and Engineering",
+    "Dhaka City College Computer Science and Engineering",
     "student academic dashboard",
   ],
   publisher: "DCC CSE 25",

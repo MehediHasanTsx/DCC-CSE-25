@@ -136,7 +136,7 @@ export default function RegisterPage() {
           </div>
           <h1 className="text-2xl font-bold tracking-tight">DCC CSE</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Join Dhaka City College Science & Engineering Student Portal
+            Join Dhaka City College Computer Science & Engineering Student Portal
           </p>
         </div>
 

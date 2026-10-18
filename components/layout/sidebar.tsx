@@ -35,6 +35,7 @@ import { useAuth } from '@/components/providers/auth-provider';
 import { useProfile } from '@/lib/hooks/useProfile';
 import { getGravatarUrl } from '@/lib/utils/formatters';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { PwaInstallButton } from '@/components/shared/pwa-install-button';
 
 interface SidebarProps {
   onNavigate?: () => void;
@@ -258,6 +259,9 @@ export function Sidebar({ onNavigate, onClose }: SidebarProps) {
 
       {/* ── Fixed Bottom Panel: Profile with Settings ── */}
       <div className="shrink-0 border-t border-border bg-sidebar/95 backdrop-blur-xs p-3 space-y-2">
+        {/* PWA Install Button for Browser users */}
+        <PwaInstallButton variant="sidebar" />
+
         {/* Profile Card with Settings Link */}
         <div className={cn(
           'flex items-center justify-between gap-2.5 p-2 rounded-xl border transition-all',
