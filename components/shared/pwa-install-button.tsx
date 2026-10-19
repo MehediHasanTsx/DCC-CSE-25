@@ -14,9 +14,7 @@ import {
   Download,
   Share2,
   PlusSquare,
-  CheckCircle2,
   Smartphone,
-  Laptop,
   Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -32,7 +30,7 @@ export function PwaInstallButton({
   className = '',
   showIfInstalled = false,
 }: PwaInstallButtonProps) {
-  const { canInstall, isInstalled, isStandalone, isIOS, promptInstall, hasNativePrompt } =
+  const { isInstalled, isStandalone, isIOS, promptInstall } =
     usePwaInstall();
   const [showGuide, setShowGuide] = useState(false);
 

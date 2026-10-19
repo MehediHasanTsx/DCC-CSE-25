@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useSyncExternalStore } from 'react';
 
 export interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -32,45 +32,52 @@ if (typeof window !== 'undefined') {
   });
 }
 
+const emptySubscribe = () => () => {};
+
+function getIsIOS() {
+  if (typeof window === 'undefined') return false;
+  const ua = window.navigator.userAgent.toLowerCase();
+  return /iphone|ipad|ipod/.test(ua) && !(window as unknown as { MSStream?: unknown }).MSStream;
+}
+
+function getIsStandalone() {
+  if (typeof window === 'undefined') return false;
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
+    document.referrer.includes('android-app://')
+  );
+}
+
+function subscribeStandalone(callback: () => void) {
+  if (typeof window === 'undefined') return () => {};
+  const media = window.matchMedia('(display-mode: standalone)');
+  media.addEventListener('change', callback);
+  return () => media.removeEventListener('change', callback);
+}
+
 export function usePwaInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(
     () => _globalDeferredPrompt
   );
-  const [isInstalled, setIsInstalled] = useState<boolean>(false);
-  const [isIOS, setIsIOS] = useState<boolean>(false);
-  const [isStandalone, setIsStandalone] = useState<boolean>(false);
+  const [hasInstalledEventFired, setHasInstalledEventFired] = useState<boolean>(false);
+
+  const isIOS = useSyncExternalStore(emptySubscribe, getIsIOS, () => false);
+  const isStandalone = useSyncExternalStore(subscribeStandalone, getIsStandalone, () => false);
+  const isInstalled = hasInstalledEventFired || isStandalone;
 
   useEffect(() => {
-    // Check if running in standalone display mode
-    const checkStandalone = () => {
-      const isStandaloneMode =
-        window.matchMedia('(display-mode: standalone)').matches ||
-        (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
-        document.referrer.includes('android-app://');
-      setIsStandalone(isStandaloneMode);
-      if (isStandaloneMode) {
-        setIsInstalled(true);
-      }
-    };
-
-    checkStandalone();
-
-    // Detect iOS
-    const ua = window.navigator.userAgent.toLowerCase();
-    const isIosDevice = /iphone|ipad|ipod/.test(ua) && !(window as unknown as { MSStream?: unknown }).MSStream;
-    setIsIOS(isIosDevice);
-
     const handlePromptUpdate = (prompt: BeforeInstallPromptEvent | null) => {
       setDeferredPrompt(prompt);
       if (!prompt && isStandalone) {
-        setIsInstalled(true);
+        setHasInstalledEventFired(true);
       }
     };
 
     _promptListeners.add(handlePromptUpdate);
 
     const handleAppInstalled = () => {
-      setIsInstalled(true);
+      setHasInstalledEventFired(true);
       setDeferredPrompt(null);
     };
 
@@ -88,7 +95,7 @@ export function usePwaInstall() {
         await deferredPrompt.prompt();
         const choice = await deferredPrompt.userChoice;
         if (choice.outcome === 'accepted') {
-          setIsInstalled(true);
+          setHasInstalledEventFired(true);
           _globalDeferredPrompt = null;
           setDeferredPrompt(null);
           return 'accepted';

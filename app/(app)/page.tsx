@@ -40,7 +40,6 @@ import {
   Check,
   X,
   CheckCircle2,
-  XCircle,
   ListChecks,
   Clock,
   Circle,
@@ -49,6 +48,7 @@ import {
   Sparkles,
   ChevronRight,
   Target,
+  CalendarOff,
 } from 'lucide-react';
 import { useAuth } from '@/components/providers/auth-provider';
 import { DccCse25Landing } from '@/components/landing/public-landing';
@@ -419,7 +419,7 @@ function StudentDashboardContent() {
                 <p className="text-sm lg:text-base font-medium text-muted-foreground">
                   {todayClasses.length === 0 ? 'No classes scheduled for today.' : 'No classes match this filter.'}
                 </p>
-                <p className="text-xs lg:text-sm text-muted-foreground/70">
+                <p className="text-xs lg:text-sm text-muted-foreground">
                   Enjoy your day off or review your study plan!
                 </p>
               </div>
@@ -436,8 +436,16 @@ function StudentDashboardContent() {
                     try {
                       setMarkingSubjectId(slot.subjectId);
                       await markAttendance(slot.subjectId, todayIso, status);
+                      const statusLabel =
+                        status === 'present'
+                          ? 'Present'
+                          : status === 'late'
+                          ? 'Late'
+                          : status === 'absent'
+                          ? 'Absent'
+                          : 'No Class';
                       toast.success(
-                        `${slot.subject?.name || 'Class'} marked as ${status === 'present' ? 'Present' : 'Absent'}`
+                        `${slot.subject?.name || 'Class'} marked as ${statusLabel}`
                       );
                     } catch {
                       toast.error('Failed to mark attendance.');
@@ -449,98 +457,107 @@ function StudentDashboardContent() {
                   return (
                     <div
                       key={slot.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border/70 p-3.5 lg:p-4 transition-all duration-150 hover:bg-muted/20 hover:border-primary/30"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 rounded-xl border border-border/70 p-3.5 lg:p-4 transition-all duration-150 hover:bg-muted/20 hover:border-primary/30"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
                         {/* Time badge */}
-                        <div className="flex flex-col items-center justify-center text-xs lg:text-sm font-medium bg-muted/60 dark:bg-muted/30 px-2.5 py-1.5 lg:px-3 lg:py-2 rounded-lg min-w-20 lg:min-w-22 shrink-0">
+                        <div className="flex flex-col items-center justify-center text-xs lg:text-sm font-medium bg-muted/60 dark:bg-muted/30 px-2.5 py-1.5 lg:px-3 lg:py-2 rounded-lg min-w-19 lg:min-w-22 shrink-0">
                           <span className="font-bold text-foreground">{formatTime(slot.startTime)}</span>
                           <span className="text-[10px] lg:text-xs text-muted-foreground">{formatTime(slot.endTime)}</span>
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm sm:text-base lg:text-lg font-bold text-foreground truncate">
+                          <p className="text-sm sm:text-base font-bold text-foreground leading-snug wrap-break-word">
                             {slot.subject?.name || 'Unknown Subject'}
                           </p>
-                          <div className="flex items-center gap-1.5 text-xs lg:text-sm text-muted-foreground flex-wrap mt-0.5">
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap mt-1">
                             {slot.subject?.code && (
-                              <span className="font-mono text-[11px] lg:text-xs font-semibold text-primary/90">
+                              <span className="font-mono text-[11px] font-semibold text-primary/90">
                                 {slot.subject.code}
                               </span>
                             )}
                             {slot.group && slot.group !== 'All' && (
-                              <Badge variant="secondary" className="text-[10px] lg:text-xs px-1.5 py-0 h-4 lg:h-5 font-semibold">
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4.5 font-semibold">
                                 Group {slot.group}
                               </Badge>
                             )}
                             {slot.room && (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-muted/50 text-[11px] lg:text-xs">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-muted/50 text-[11px]">
                                 Room {slot.room}
                               </span>
                             )}
                             {slot.teacher && (
-                              <span className="text-[11px] lg:text-xs">· {slot.teacher}</span>
+                              <span className="text-[11px] text-muted-foreground">· {slot.teacher}</span>
                             )}
                           </div>
                         </div>
                       </div>
 
-                      {/* Fast 1-Click Attendance Buttons */}
-                      <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
-                        {att ? (
-                          <div className="flex items-center gap-1.5">
-                            <Badge
-                              variant={att.status === 'present' ? 'default' : 'destructive'}
-                              className={`text-xs lg:text-sm gap-1 py-1 px-2.5 font-semibold rounded-lg ${
-                                att.status === 'present'
-                                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                                  : 'bg-rose-600 hover:bg-rose-700 text-white'
-                              }`}
-                            >
-                              {att.status === 'present' ? (
-                                <CheckCircle2 className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
-                              ) : (
-                                <XCircle className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
-                              )}
-                              {att.status === 'present' ? 'Present' : 'Absent'}
-                            </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              disabled={isMarking}
-                              className="h-7 lg:h-8 text-[11px] lg:text-xs px-2 text-muted-foreground hover:text-foreground rounded-lg cursor-pointer"
-                              onClick={() =>
-                                handleMark(att.status === 'present' ? 'absent' : 'present')
-                              }
-                              title="Toggle between Present and Absent"
-                            >
-                              Change
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={isMarking}
-                              className="h-8 lg:h-9 px-2.5 lg:px-3 text-xs lg:text-sm font-semibold gap-1 rounded-lg border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 cursor-pointer"
-                              onClick={() => handleMark('present')}
-                            >
-                              <Check className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
-                              Present
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={isMarking}
-                              className="h-8 lg:h-9 px-2.5 lg:px-3 text-xs lg:text-sm font-semibold gap-1 rounded-lg border-rose-500/40 text-rose-700 dark:text-rose-400 hover:bg-rose-500/10 cursor-pointer"
-                              onClick={() => handleMark('absent')}
-                            >
-                              <X className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
-                              Absent
-                            </Button>
-                          </div>
-                        )}
+                      {/* Fast 1-Click Attendance Buttons (2x2 Grid) */}
+                      <div className="grid grid-cols-2 gap-1.5 shrink-0 self-stretch sm:self-center w-full sm:w-auto">
+                        <Button
+                          size="sm"
+                          variant={att?.status === 'present' ? 'default' : 'outline'}
+                          disabled={isMarking}
+                          className={`h-7.5 sm:h-8 px-2.5 text-xs font-semibold gap-1.5 rounded-lg cursor-pointer transition-all ${
+                            att?.status === 'present'
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs border-transparent'
+                              : 'border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10'
+                          }`}
+                          onClick={() => handleMark('present')}
+                          title="Mark Present"
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                          <span>Present</span>
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant={att?.status === 'late' ? 'default' : 'outline'}
+                          disabled={isMarking}
+                          className={`h-7.5 sm:h-8 px-2.5 text-xs font-semibold gap-1.5 rounded-lg cursor-pointer transition-all ${
+                            att?.status === 'late'
+                              ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-xs border-transparent'
+                              : 'border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10'
+                          }`}
+                          onClick={() => handleMark('late')}
+                          title="Mark Late"
+                        >
+                          <Clock className="h-3.5 w-3.5" />
+                          <span>Late</span>
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant={att?.status === 'absent' ? 'default' : 'outline'}
+                          disabled={isMarking}
+                          className={`h-7.5 sm:h-8 px-2.5 text-xs font-semibold gap-1.5 rounded-lg cursor-pointer transition-all ${
+                            att?.status === 'absent'
+                              ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-xs border-transparent'
+                              : 'border-rose-500/40 text-rose-700 dark:text-rose-400 hover:bg-rose-500/10'
+                          }`}
+                          onClick={() => handleMark('absent')}
+                          title="Mark Absent"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                          <span>Absent</span>
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant={att?.status === 'noClass' ? 'default' : 'outline'}
+                          disabled={isMarking}
+                          className={`h-7.5 sm:h-8 px-2.5 text-xs font-semibold gap-1.5 rounded-lg cursor-pointer transition-all ${
+                            att?.status === 'noClass'
+                              ? 'bg-slate-600 hover:bg-slate-700 dark:bg-slate-700 text-white shadow-xs border-transparent'
+                              : 'border-slate-400/40 text-slate-700 dark:text-slate-300 hover:bg-slate-500/10'
+                          }`}
+                          onClick={() => handleMark('noClass')}
+                          title="Mark No Class"
+                        >
+                          <CalendarOff className="h-3.5 w-3.5" />
+                          <span>No Class</span>
+                        </Button>
                       </div>
                     </div>
                   );
@@ -611,7 +628,7 @@ function StudentDashboardContent() {
                 <p className="text-sm lg:text-base text-muted-foreground">
                   No upcoming assignments.
                 </p>
-                <p className="text-xs lg:text-sm text-muted-foreground/60">
+                <p className="text-xs lg:text-sm text-muted-foreground">
                   All assignments completed or none published yet.
                 </p>
               </div>
@@ -732,11 +749,32 @@ function StudentDashboardContent() {
               </p>
             ) : (
               <>
-                <div className="flex justify-end">
+                <div className="flex items-center justify-end gap-2 flex-wrap">
                   <Button
                     size="sm"
                     variant="outline"
-                    className="text-xs h-8 gap-1.5 border-emerald-500/40 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                    className="text-xs h-8 gap-1.5 border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 cursor-pointer"
+                    onClick={async () => {
+                      const todayIso = getLocalDateString();
+                      const recordsToMark = todayClasses.map((s) => ({
+                        subjectId: s.subjectId,
+                        status: 'noClass' as AttendanceStatus,
+                      }));
+                      try {
+                        await bulkMark(todayIso, recordsToMark);
+                        toast.success('Marked all classes as No Class!');
+                      } catch {
+                        toast.error('Failed to mark attendance.');
+                      }
+                    }}
+                  >
+                    <CalendarOff className="h-3.5 w-3.5" />
+                    All No Class
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs h-8 gap-1.5 border-emerald-500/40 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 cursor-pointer"
                     onClick={async () => {
                       const todayIso = getLocalDateString();
                       const recordsToMark = todayClasses.map((s) => ({
@@ -782,7 +820,7 @@ function StudentDashboardContent() {
                           <Button
                             size="sm"
                             variant={att?.status === 'present' ? 'default' : 'outline'}
-                            className={`h-7 px-2 text-xs gap-1 ${
+                            className={`h-7 px-2 text-xs gap-1 cursor-pointer ${
                               att?.status === 'present'
                                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
                                 : 'border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
@@ -802,8 +840,29 @@ function StudentDashboardContent() {
 
                           <Button
                             size="sm"
+                            variant={att?.status === 'late' ? 'default' : 'outline'}
+                            className={`h-7 px-2 text-xs gap-1 cursor-pointer ${
+                              att?.status === 'late'
+                                ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                                : 'border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+                            }`}
+                            onClick={async () => {
+                              try {
+                                await markAttendance(slot.subjectId, todayIso, 'late');
+                                toast.success(`${slot.subject?.name} marked Late.`);
+                              } catch {
+                                toast.error('Failed to mark.');
+                              }
+                            }}
+                          >
+                            <Clock className="h-3 w-3" />
+                            Late
+                          </Button>
+
+                          <Button
+                            size="sm"
                             variant={att?.status === 'absent' ? 'default' : 'outline'}
-                            className={`h-7 px-2 text-xs gap-1 ${
+                            className={`h-7 px-2 text-xs gap-1 cursor-pointer ${
                               att?.status === 'absent'
                                 ? 'bg-rose-600 hover:bg-rose-700 text-white'
                                 : 'border-rose-500/30 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30'
@@ -819,6 +878,27 @@ function StudentDashboardContent() {
                           >
                             <X className="h-3 w-3" />
                             Absent
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            variant={att?.status === 'noClass' ? 'default' : 'outline'}
+                            className={`h-7 px-2 text-xs gap-1 cursor-pointer ${
+                              att?.status === 'noClass'
+                                ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                                : 'border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+                            }`}
+                            onClick={async () => {
+                              try {
+                                await markAttendance(slot.subjectId, todayIso, 'noClass');
+                                toast.success(`${slot.subject?.name} marked No Class.`);
+                              } catch {
+                                toast.error('Failed to mark.');
+                              }
+                            }}
+                          >
+                            <CalendarOff className="h-3 w-3" />
+                            No Class
                           </Button>
                         </div>
                       </div>
@@ -1043,7 +1123,7 @@ function ExamCountdownCard({ exams, className = '' }: { exams: ExamRoutineItem[]
             <p className="text-sm lg:text-base text-muted-foreground">
               No upcoming exams.
             </p>
-            <p className="text-xs lg:text-sm text-muted-foreground/60">
+            <p className="text-xs lg:text-sm text-muted-foreground">
               No exam routine published yet.
             </p>
           </div>
@@ -1168,7 +1248,7 @@ function TodayChecklistCard({
         {checklist.activities.length === 0 ? (
           <div className="py-6 text-center space-y-2">
             <p className="text-sm lg:text-base font-medium text-muted-foreground">No routine activities scheduled for today.</p>
-            <p className="text-xs lg:text-sm text-muted-foreground/70">
+            <p className="text-xs lg:text-sm text-muted-foreground">
               Create a routine in the planner to schedule your daily habits and tasks.
             </p>
             <div className="pt-2">

@@ -18,7 +18,6 @@ import {
   Sparkles,
   ListChecks,
   Menu,
-  Download,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useAuth } from '@/components/providers/auth-provider';
@@ -171,7 +170,7 @@ export function DccCse25Landing() {
         <section className="relative overflow-hidden pt-14 pb-18 sm:pt-20 sm:pb-24 md:pt-24 md:pb-28">
         <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center relative">
           {/* Eyebrow */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 sm:px-4 py-1.5 text-xs font-semibold text-primary mb-5 sm:mb-6 animate-fade-in">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 sm:px-4 py-1.5 text-xs font-semibold text-blue-700 dark:text-violet-300 mb-5 sm:mb-6 animate-fade-in">
             <span className="flex h-1.5 w-1.5 rounded-full bg-primary" />
             Dhaka City College · Computer Science &amp; Engineering (Batch 25)
           </div>
@@ -567,7 +566,7 @@ export function DccCse25Landing() {
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-border/40 text-center text-xs text-muted-foreground/60 space-y-1">
+          <div className="mt-8 pt-6 border-t border-border/40 text-center text-xs text-muted-foreground space-y-1">
             <p className="text-[11px]">
               DCC CSE 25 is an independent open-source student academic resource companion. Not affiliated with Dhaka City College or National University.
             </p>

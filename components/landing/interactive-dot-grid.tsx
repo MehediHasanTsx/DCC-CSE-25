@@ -36,7 +36,7 @@ export function InteractiveDotGrid() {
     let animationFrameId: number | null = null;
     let isRunning = false;
     let dots: Dot[] = [];
-    let trail: TrailPoint[] = [];
+    const trail: TrailPoint[] = [];
 
     // Pointer state (viewport client coordinates)
     const pointer = {
@@ -52,8 +52,8 @@ export function InteractiveDotGrid() {
     const MAX_DISPLACEMENT = 11; // Space widening / repulsion
     const RETURN_SPRING = 0.08; // Spring return speed
     const DAMPING = 0.82; // Inertia damping
-    const MAX_TRAIL_AGE = 380; // Lifespan so trail is a single smooth line and vanishes gracefully
-    const MAX_TRAIL_POINTS = 22; // Keep as a single unified line (avoids multiple overlapping loops)
+    const MAX_TRAIL_AGE = 700; // Lifespan so trail stays visible longer while moving
+    const MAX_TRAIL_POINTS = 50; // Ample points for a smooth, lingering movement line
 
     // Theme detection
     let isDark = document.documentElement.classList.contains('dark');
@@ -169,7 +169,7 @@ export function InteractiveDotGrid() {
           const progress = i / (trail.length - 1);
           const age = now - curr.time;
           const life = Math.max(0, 1 - age / MAX_TRAIL_AGE);
-          const alpha = life * Math.pow(progress, 1.2) * (isDark ? 0.75 : 0.6);
+          const alpha = life * Math.pow(progress, 0.8) * (isDark ? 0.8 : 0.65);
 
           if (alpha > 0.01) {
             ctx.beginPath();
@@ -311,7 +311,7 @@ export function InteractiveDotGrid() {
       const last = trail[trail.length - 1];
 
       // Add point if distance is meaningful (smoother trail, avoid duplicates)
-      if (!last || Math.hypot(x - last.x, y - last.y) >= 2.5) {
+      if (!last || Math.hypot(x - last.x, y - last.y) >= 3.5) {
         trail.push({ x, y, time: now });
         if (trail.length > MAX_TRAIL_POINTS) {
           trail.shift();

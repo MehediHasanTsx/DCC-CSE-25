@@ -192,7 +192,7 @@ export function Sidebar({ onNavigate, onClose }: SidebarProps) {
           {/* Navigation Groups */}
           {NAV_SECTIONS.map((section) => (
             <div key={section.label} className="space-y-1">
-              <p className="px-3 text-[0.68rem] lg:text-xs font-semibold uppercase tracking-wider text-muted-foreground/75">
+              <p className="px-3 text-[0.68rem] lg:text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 {section.label}
               </p>
               <ul className="space-y-0.5">
@@ -320,7 +320,7 @@ export function Sidebar({ onNavigate, onClose }: SidebarProps) {
           <Link
             href="/disclaimer"
             onClick={onNavigate}
-            className="text-[0.62rem] text-muted-foreground/50 hover:text-muted-foreground hover:underline transition-colors"
+            className="text-[0.68rem] text-muted-foreground hover:text-foreground hover:underline transition-colors"
           >
             Independent Project • Disclaimer
           </Link>
