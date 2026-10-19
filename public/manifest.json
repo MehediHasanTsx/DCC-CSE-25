@@ -8,6 +8,13 @@
   "theme_color": "#090d16",
   "orientation": "portrait-primary",
   "categories": ["education", "utilities"],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "/manifest.json"
+    }
+  ],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icon-192.png",

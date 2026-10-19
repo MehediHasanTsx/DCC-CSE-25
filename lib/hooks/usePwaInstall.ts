@@ -11,12 +11,23 @@ export interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+const PWA_INSTALLED_STORAGE_KEY = 'dcc_cse_pwa_installed';
+
 // Global reference so prompt isn't lost during page route changes
 let _globalDeferredPrompt: BeforeInstallPromptEvent | null = null;
 const _promptListeners = new Set<(prompt: BeforeInstallPromptEvent | null) => void>();
 
 function notifyPromptListeners() {
   _promptListeners.forEach((listener) => listener(_globalDeferredPrompt));
+}
+
+function getStoredInstalled(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return localStorage.getItem(PWA_INSTALLED_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
 }
 
 if (typeof window !== 'undefined') {
@@ -28,6 +39,11 @@ if (typeof window !== 'undefined') {
 
   window.addEventListener('appinstalled', () => {
     _globalDeferredPrompt = null;
+    try {
+      localStorage.setItem(PWA_INSTALLED_STORAGE_KEY, 'true');
+    } catch {
+      // Ignore
+    }
     notifyPromptListeners();
   });
 }
@@ -44,6 +60,8 @@ function getIsStandalone() {
   if (typeof window === 'undefined') return false;
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: window-controls-overlay)').matches ||
+    window.matchMedia('(display-mode: minimal-ui)').matches ||
     (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
     document.referrer.includes('android-app://')
   );
@@ -60,13 +78,32 @@ export function usePwaInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(
     () => _globalDeferredPrompt
   );
-  const [hasInstalledEventFired, setHasInstalledEventFired] = useState<boolean>(false);
+  const [hasInstalledEventFired, setHasInstalledEventFired] = useState<boolean>(
+    () => getStoredInstalled()
+  );
 
   const isIOS = useSyncExternalStore(emptySubscribe, getIsIOS, () => false);
   const isStandalone = useSyncExternalStore(subscribeStandalone, getIsStandalone, () => false);
   const isInstalled = hasInstalledEventFired || isStandalone;
 
   useEffect(() => {
+    // If browser supports getInstalledRelatedApps (Chrome 80+), check if PWA is already installed
+    if (typeof navigator !== 'undefined' && 'getInstalledRelatedApps' in navigator) {
+      (navigator as unknown as { getInstalledRelatedApps: () => Promise<unknown[]> })
+        .getInstalledRelatedApps()
+        .then((apps) => {
+          if (apps && apps.length > 0) {
+            try {
+              localStorage.setItem(PWA_INSTALLED_STORAGE_KEY, 'true');
+            } catch {
+              // Ignore
+            }
+            setHasInstalledEventFired(true);
+          }
+        })
+        .catch(() => {});
+    }
+
     const handlePromptUpdate = (prompt: BeforeInstallPromptEvent | null) => {
       setDeferredPrompt(prompt);
       if (!prompt && isStandalone) {
@@ -78,6 +115,11 @@ export function usePwaInstall() {
 
     const handleAppInstalled = () => {
       setHasInstalledEventFired(true);
+      try {
+        localStorage.setItem(PWA_INSTALLED_STORAGE_KEY, 'true');
+      } catch {
+        // Ignore
+      }
       setDeferredPrompt(null);
     };
 
@@ -89,15 +131,24 @@ export function usePwaInstall() {
     };
   }, [isStandalone]);
 
+  const markAsInstalled = useCallback(() => {
+    try {
+      localStorage.setItem(PWA_INSTALLED_STORAGE_KEY, 'true');
+    } catch {
+      // Ignore
+    }
+    setHasInstalledEventFired(true);
+    _globalDeferredPrompt = null;
+    setDeferredPrompt(null);
+  }, []);
+
   const promptInstall = useCallback(async (): Promise<'accepted' | 'dismissed' | 'ios' | 'instructions'> => {
     if (deferredPrompt) {
       try {
         await deferredPrompt.prompt();
         const choice = await deferredPrompt.userChoice;
         if (choice.outcome === 'accepted') {
-          setHasInstalledEventFired(true);
-          _globalDeferredPrompt = null;
-          setDeferredPrompt(null);
+          markAsInstalled();
           return 'accepted';
         }
         return 'dismissed';
@@ -111,7 +162,7 @@ export function usePwaInstall() {
     }
 
     return 'instructions';
-  }, [deferredPrompt, isIOS]);
+  }, [deferredPrompt, isIOS, markAsInstalled]);
 
   const canInstall = !isInstalled && !isStandalone;
 
@@ -121,6 +172,7 @@ export function usePwaInstall() {
     isStandalone,
     isIOS,
     promptInstall,
+    markAsInstalled,
     hasNativePrompt: !!deferredPrompt,
   };
 }

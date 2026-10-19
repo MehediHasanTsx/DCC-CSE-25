@@ -30,12 +30,18 @@ export function PwaInstallButton({
   className = '',
   showIfInstalled = false,
 }: PwaInstallButtonProps) {
-  const { isInstalled, isStandalone, isIOS, promptInstall } =
+  const { isInstalled, isStandalone, isIOS, promptInstall, hasNativePrompt, markAsInstalled } =
     usePwaInstall();
   const [showGuide, setShowGuide] = useState(false);
 
   // If already installed or running as standalone, don't show install button unless explicitly requested
   if ((isStandalone || isInstalled) && !showIfInstalled) {
+    return null;
+  }
+
+  // On sidebar bottom panel: do not show if on desktop/Chromium without a native install prompt
+  // (In Chrome, once the app is installed, Chrome never fires beforeinstallprompt, so hasNativePrompt is false)
+  if (variant === 'sidebar' && !isIOS && !hasNativePrompt && !showIfInstalled) {
     return null;
   }
 
@@ -66,10 +72,10 @@ export function PwaInstallButton({
           variant="outline"
           size="sm"
           onClick={handleClick}
-          className={`h-9 rounded-lg text-xs font-semibold gap-1.5 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 cursor-pointer ${className}`}
+          className={`h-9 px-3 text-xs font-semibold gap-1.5 rounded-lg border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors cursor-pointer ${className}`}
         >
-          <Download className="h-3.5 w-3.5 shrink-0" />
-          Install App
+          <Download className="h-3.5 w-3.5" />
+          <span>Install App</span>
         </Button>
       )}
 
@@ -191,12 +197,24 @@ export function PwaInstallButton({
             </div>
           )}
 
-          <div className="flex justify-end pt-2">
+          <div className="flex items-center justify-between pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                markAsInstalled();
+                setShowGuide(false);
+                toast.success('Install button hidden');
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+            >
+              Already downloaded? Hide button
+            </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowGuide(false)}
-              className="text-xs"
+              className="text-xs cursor-pointer"
             >
               Got it
             </Button>
