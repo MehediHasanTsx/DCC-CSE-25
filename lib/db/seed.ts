@@ -150,6 +150,8 @@ async function seedSettings(): Promise<void> {
     currencySymbol: DEFAULT_CURRENCY_SYMBOL,
     attendanceTarget: DEFAULT_ATTENDANCE_TARGET,
     totalRequiredCredits: DEFAULT_TOTAL_CREDITS,
+    routineNotificationsEnabled: true,
+    routineNotificationSound: 'common-hawk-cuckoo',
     updatedAt: new Date(),
   };
 

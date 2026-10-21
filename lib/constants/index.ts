@@ -91,7 +91,7 @@ export const SUBJECT_COLORS = [
 
 export const DEFAULT_CURRENCY = 'BDT';
 export const DEFAULT_CURRENCY_SYMBOL = '৳';
-export const DEFAULT_ATTENDANCE_TARGET = 75;
+export const DEFAULT_ATTENDANCE_TARGET = 80;
 export const DEFAULT_TOTAL_CREDITS = 160;
 
 // ── Default 5th Semester Subjects (DCC CSE) ───────────

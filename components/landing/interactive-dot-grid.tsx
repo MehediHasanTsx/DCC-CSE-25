@@ -52,8 +52,8 @@ export function InteractiveDotGrid() {
     const MAX_DISPLACEMENT = 11; // Space widening / repulsion
     const RETURN_SPRING = 0.08; // Spring return speed
     const DAMPING = 0.82; // Inertia damping
-    const MAX_TRAIL_AGE = 700; // Lifespan so trail stays visible longer while moving
-    const MAX_TRAIL_POINTS = 50; // Ample points for a smooth, lingering movement line
+    const MAX_TRAIL_AGE = 1500; // Lifespan so trail stays visible longer while moving
+    const MAX_TRAIL_POINTS = 80; // Ample points for a smooth, lingering movement line
 
     // Theme detection
     let isDark = document.documentElement.classList.contains('dark');

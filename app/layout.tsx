@@ -196,7 +196,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </DatabaseProvider>
           </AuthProvider>
           <Toaster
-            position="bottom-right"
+            position="bottom-center"
             richColors
             closeButton
             toastOptions={{

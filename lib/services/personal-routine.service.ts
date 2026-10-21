@@ -95,6 +95,7 @@ export const personalRoutineService = {
       endTime: string;
       category: ActivityCategory;
       notes?: string;
+      notify?: boolean;
     }
   ): Promise<RoutineActivity> {
     const now = new Date();
@@ -109,6 +110,7 @@ export const personalRoutineService = {
       endTime: data.endTime,
       category: data.category,
       notes: data.notes,
+      notify: data.notify ?? false,
       order: maxOrder + 1,
       createdAt: now,
       updatedAt: now,
@@ -120,7 +122,7 @@ export const personalRoutineService = {
 
   async updateActivity(
     id: string,
-    data: Partial<Pick<RoutineActivity, 'title' | 'startTime' | 'endTime' | 'category' | 'notes' | 'order'>>
+    data: Partial<Pick<RoutineActivity, 'title' | 'startTime' | 'endTime' | 'category' | 'notes' | 'notify' | 'order'>>
   ): Promise<void> {
     await db().routineActivities.update(id, { ...data, updatedAt: new Date() });
     cloudSyncService.scheduleUpload();

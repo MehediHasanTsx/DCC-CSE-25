@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTheme } from 'next-themes';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,23 +19,37 @@ import {
   Sparkles,
   ListChecks,
   Menu,
+  Moon,
+  Sun,
+  Monitor,
+  MessageCircle,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useAuth } from '@/components/providers/auth-provider';
 import { PwaInstallButton } from '@/components/shared/pwa-install-button';
 import { InteractiveDotGrid } from '@/components/landing/interactive-dot-grid';
+import { AskAdminWidget } from '@/components/shared/ask-admin-widget';
+
+const ADMIN_WHATSAPP_URL =
+  'https://api.whatsapp.com/send/?phone=8801521743944&text=Hi%20Admin,%20I%20have%20a%20question%20about%20the%20DCC%20CSE%20Dashboard';
 
 export function DccCse25Landing() {
   const { enterGuestMode } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleScrollToTop = (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20 relative">
       <InteractiveDotGrid />
       {/* Navigation Header */}
       <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-        <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2.5 group">
+        <div className="container mx-auto flex h-18 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <a href="#" onClick={handleScrollToTop} className="flex items-center gap-2.5 group cursor-pointer">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm transition-transform group-hover:scale-105 shrink-0">
               <GraduationCap className="h-5 w-5" />
             </div>
@@ -42,7 +57,7 @@ export function DccCse25Landing() {
               <span className="text-base sm:text-lg font-bold tracking-tight block leading-none truncate">DCC CSE 25</span>
               <span className="text-[10px] text-muted-foreground font-medium hidden xs:block">Dhaka City College</span>
             </div>
-          </Link>
+          </a>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
@@ -55,6 +70,36 @@ export function DccCse25Landing() {
           {/* Desktop Action Buttons */}
           <div className="hidden sm:flex items-center gap-2.5">
             <PwaInstallButton variant="header" />
+            {/* Theme Toggle */}
+            <div className="flex items-center gap-0.5 rounded-lg border border-border/60 p-0.5">
+              <Button
+                variant={theme === 'light' ? 'default' : 'ghost'}
+                size="icon"
+                onClick={() => setTheme('light')}
+                className="h-7 w-7 rounded-md"
+                aria-label="Light theme"
+              >
+                <Sun className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant={theme === 'dark' ? 'default' : 'ghost'}
+                size="icon"
+                onClick={() => setTheme('dark')}
+                className="h-7 w-7 rounded-md"
+                aria-label="Dark theme"
+              >
+                <Moon className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant={theme === 'system' ? 'default' : 'ghost'}
+                size="icon"
+                onClick={() => setTheme('system')}
+                className="h-7 w-7 rounded-md"
+                aria-label="System theme"
+              >
+                <Monitor className="h-3.5 w-3.5" />
+              </Button>
+            </div>
             <Link
               href="/login"
               className={cn(
@@ -137,6 +182,37 @@ export function DccCse25Landing() {
                   FAQ
                 </a>
               </nav>
+
+              {/* Theme Toggle in Mobile Menu */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground px-3">Appearance</p>
+                <div className="flex gap-1.5 px-3">
+                  <Button
+                    variant={theme === 'light' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setTheme('light')}
+                    className="flex-1 h-9 rounded-lg text-xs"
+                  >
+                    <Sun className="mr-1.5 h-3.5 w-3.5" /> Light
+                  </Button>
+                  <Button
+                    variant={theme === 'dark' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setTheme('dark')}
+                    className="flex-1 h-9 rounded-lg text-xs"
+                  >
+                    <Moon className="mr-1.5 h-3.5 w-3.5" /> Dark
+                  </Button>
+                  <Button
+                    variant={theme === 'system' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setTheme('system')}
+                    className="flex-1 h-9 rounded-lg text-xs"
+                  >
+                    <Monitor className="mr-1.5 h-3.5 w-3.5" /> Auto
+                  </Button>
+                </div>
+              </div>
             </div>
 
             {/* Mobile Menu Action CTAs */}
@@ -510,6 +586,33 @@ export function DccCse25Landing() {
         </div>
       </section>
 
+      {/* Contact Admin Section */}
+      <section className="py-16 md:py-20">
+        <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-3">
+            <MessageCircle className="h-4 w-4" /> Get in Touch
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
+            Have an Idea or Issue?
+          </h2>
+          <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto mb-8">
+            If you have any idea or issue about this platform you can directly discuss it with the admin. We appreciate your feedback and suggestions to make DCC CSE better for everyone.
+          </p>
+          <a
+            href={ADMIN_WHATSAPP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              buttonVariants({ size: "lg" }),
+              "h-12 rounded-xl px-7 gap-2.5 font-semibold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white transition-transform active:scale-98 inline-flex items-center justify-center cursor-pointer"
+            )}
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 15 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67M8.53 7.33C8.37 7.33 8.1 7.39 7.87 7.64C7.65 7.89 7 8.5 7 9.71C7 10.93 7.89 12.1 8 12.27C8.14 12.44 9.76 14.94 12.25 16C12.84 16.27 13.3 16.42 13.66 16.53C14.25 16.72 14.79 16.69 15.22 16.63C15.7 16.56 16.68 16.03 16.89 15.45C17.1 14.87 17.1 14.38 17.04 14.27C16.97 14.17 16.81 14.11 16.56 14C16.31 13.86 15.09 13.26 14.87 13.18C14.64 13.1 14.5 13.06 14.31 13.3C14.15 13.55 13.67 14.11 13.53 14.27C13.38 14.44 13.24 14.46 13 14.34C12.74 14.21 11.94 13.95 11 13.11C10.26 12.45 9.77 11.64 9.62 11.39C9.5 11.15 9.61 11 9.73 10.89C9.84 10.78 10 10.6 10.1 10.45C10.23 10.31 10.27 10.2 10.35 10.04C10.43 9.87 10.39 9.73 10.33 9.61C10.27 9.5 9.77 8.26 9.56 7.77C9.36 7.29 9.16 7.35 9 7.34C8.86 7.34 8.7 7.33 8.53 7.33Z" /></svg>
+            Chat with Admin on WhatsApp
+          </a>
+        </div>
+      </section>
+
       {/* Closing CTA */}
       <section className="py-16 md:py-20">
         <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
@@ -541,6 +644,9 @@ export function DccCse25Landing() {
       </section>
 
       </main>
+
+      {/* Floating WhatsApp Button on Landing Page */}
+      <AskAdminWidget />
 
       {/* Footer */}
       <footer className="relative z-10 mt-auto border-t border-border/60 bg-card py-10">

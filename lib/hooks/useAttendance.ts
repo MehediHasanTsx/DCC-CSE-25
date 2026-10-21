@@ -8,7 +8,7 @@ import type { Attendance, AttendanceStatus } from '@/types/database';
 export function useAttendance(semesterId: string | undefined) {
   const [records, setRecords] = useState<Attendance[]>([]);
   const [loading, setLoading] = useState(true);
-  const [attendanceTarget, setAttendanceTarget] = useState(75);
+  const [attendanceTarget, setAttendanceTarget] = useState(80);
 
   const load = useCallback(async () => {
     if (!semesterId) {

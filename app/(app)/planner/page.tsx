@@ -49,6 +49,7 @@ import {
   Circle,
   AlertCircle,
   LayoutGrid,
+  Bell,
 } from 'lucide-react';
 import { formatTime, getLocalDateString, parseLocalDate } from '@/lib/utils/formatters';
 import { toast } from 'sonner';
@@ -368,6 +369,14 @@ export default function PlannerPage() {
                           >
                             {cat.icon} {cat.label}
                           </Badge>
+                          {activity.notify && (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] px-1.5 py-0 gap-0.5 text-amber-600 dark:text-amber-400 border-amber-500/40 bg-amber-500/10"
+                            >
+                              <Bell className="h-2.5 w-2.5" /> Notify
+                            </Badge>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -586,7 +595,17 @@ export default function PlannerPage() {
                               <div className="flex items-center gap-2 min-w-0 flex-1">
                                 <span className="text-sm">{cat.icon}</span>
                                 <div className="min-w-0">
-                                  <p className="text-xs font-medium truncate">{a.title}</p>
+                                  <div className="flex items-center gap-1.5">
+                                    <p className="text-xs font-medium truncate">{a.title}</p>
+                                    {a.notify && (
+                                      <Badge
+                                        variant="outline"
+                                        className="text-[9px] px-1 py-0 gap-0.5 text-amber-600 dark:text-amber-400 border-amber-500/40 bg-amber-500/10"
+                                      >
+                                        <Bell className="h-2 w-2" /> Notify
+                                      </Badge>
+                                    )}
+                                  </div>
                                   <p className="text-[10px] text-muted-foreground">
                                     {formatTime(a.startTime)} – {formatTime(a.endTime)}
                                   </p>
@@ -848,7 +867,7 @@ function ActivityForm({
 }: {
   activity: RoutineActivity | null;
   existingActivities: RoutineActivity[];
-  onSubmit: (data: { title: string; startTime: string; endTime: string; category: ActivityCategory; notes?: string }) => void;
+  onSubmit: (data: { title: string; startTime: string; endTime: string; category: ActivityCategory; notes?: string; notify?: boolean }) => void;
   onCancel: () => void;
 }) {
   const [title, setTitle] = useState(activity?.title || '');
@@ -856,6 +875,7 @@ function ActivityForm({
   const [endTime, setEndTime] = useState(activity?.endTime || '09:00');
   const [category, setCategory] = useState<ActivityCategory>(activity?.category || 'study');
   const [notes, setNotes] = useState(activity?.notes || '');
+  const [notify, setNotify] = useState(activity?.notify ?? false);
   const [error, setError] = useState('');
 
   const handleSubmit = () => {
@@ -886,6 +906,7 @@ function ActivityForm({
       endTime,
       category,
       notes: notes.trim() || undefined,
+      notify,
     });
   };
 
@@ -938,6 +959,28 @@ function ActivityForm({
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        {/* Priority Notification Toggle */}
+        <div className="flex items-center justify-between rounded-lg border border-border/70 p-3 bg-muted/30">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-1.5 text-sm font-medium">
+              <Bell className="h-4 w-4 text-amber-500" />
+              <span>Notify me</span>
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal text-amber-600 dark:text-amber-400 border-amber-500/30">
+                Priority
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Plays Common Hawk-Cuckoo notification sound when this activity starts
+            </p>
+          </div>
+          <Checkbox
+            id="activity-notify"
+            checked={notify}
+            onCheckedChange={(checked) => setNotify(!!checked)}
+            className="h-5 w-5 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+          />
         </div>
 
         <div className="space-y-2">

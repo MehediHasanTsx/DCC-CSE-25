@@ -16,10 +16,54 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Settings, Moon, Sun, Monitor, Download, Upload, Trash2, User, GraduationCap, AlertTriangle, LogOut, Shield, Camera, X, Sparkles } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Settings,
+  Moon,
+  Sun,
+  Monitor,
+  Download,
+  Upload,
+  Trash2,
+  User,
+  GraduationCap,
+  AlertTriangle,
+  LogOut,
+  Shield,
+  Camera,
+  X,
+  Sparkles,
+  Bell,
+  Volume2,
+  Play,
+  Square,
+} from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { getGravatarUrl } from '@/lib/utils/formatters';
+import {
+  NOTIFICATION_SOUNDS,
+  playNotificationSound,
+  stopNotificationSound,
+  requestNotificationPermission,
+} from '@/lib/utils/sound';
 import type { Settings as SettingsType } from '@/types/database';
 
 export default function SettingsPage() {
@@ -30,11 +74,78 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<SettingsType | null>(null);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [isPlayingSound, setIsPlayingSound] = useState(false);
+  const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      return Notification.permission;
+    }
+    return 'default';
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     settingsService.get().then(setSettings);
   }, []);
+
+  const handlePreviewSound = async () => {
+    if (isPlayingSound) {
+      stopNotificationSound();
+      setIsPlayingSound(false);
+      return;
+    }
+    const currentSound = settings?.routineNotificationSound || 'common-hawk-cuckoo';
+    setIsPlayingSound(true);
+    await playNotificationSound(currentSound);
+    setTimeout(() => setIsPlayingSound(false), 3500);
+  };
+
+  const handleRequestPermission = async () => {
+    const res = await requestNotificationPermission();
+    setPermissionStatus(res);
+    if (res === 'granted') {
+      toast.success('Notification permission granted!');
+    } else {
+      toast.error('Notification permission was not granted.');
+    }
+  };
+
+  const handleTestNotification = async () => {
+    const currentSound = settings?.routineNotificationSound || 'common-hawk-cuckoo';
+    void playNotificationSound(currentSound);
+
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.ready;
+          if (reg && reg.showNotification) {
+            await reg.showNotification('DCC CSE Routine Alert (Test)', {
+              body: 'Time for Office Work (09:00 – 17:00) • Priority Routine Reminder',
+              icon: '/icon-192.png',
+              badge: '/icon-192.png',
+              tag: 'test-notification',
+            });
+          } else {
+            new Notification('DCC CSE Routine Alert (Test)', {
+              body: 'Time for Office Work (09:00 – 17:00) • Priority Routine Reminder',
+              icon: '/icon-192.png',
+            });
+          }
+        } else {
+          new Notification('DCC CSE Routine Alert (Test)', {
+            body: 'Time for Office Work (09:00 – 17:00) • Priority Routine Reminder',
+            icon: '/icon-192.png',
+          });
+        }
+      } catch (err) {
+        console.warn('Test notification failed:', err);
+      }
+    }
+
+    toast('🔔 Test Routine Alert Triggered', {
+      description: 'Sound played! Priority alerts fire automatically at scheduled routine times.',
+      duration: 5000,
+    });
+  };
 
   const handleExport = async () => {
     try {
@@ -196,7 +307,7 @@ export default function SettingsPage() {
                 min={0}
                 max={100}
                 value={settings.attendanceTarget}
-                onChange={(e) => updateSetting('attendanceTarget', parseInt(e.target.value) || 75)}
+                onChange={(e) => updateSetting('attendanceTarget', parseInt(e.target.value) || 80)}
               />
             </div>
             <div className="space-y-2">
@@ -224,6 +335,115 @@ export default function SettingsPage() {
                 onChange={(e) => updateSetting('currencySymbol', e.target.value)}
               />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Routine Priority Notifications & Sound */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Bell className="h-4 w-4 text-amber-500" /> Routine Priority Notifications
+            </CardTitle>
+            <Switch
+              checked={settings.routineNotificationsEnabled ?? true}
+              onCheckedChange={(checked) => updateSetting('routineNotificationsEnabled', checked)}
+              aria-label="Toggle routine notifications"
+            />
+          </div>
+          <CardDescription>
+            Get notified when priority items (e.g. Office, Prayer, Study) start in your daily routine planner.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Notification Sound</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1.5 text-xs"
+                onClick={handlePreviewSound}
+                disabled={!(settings.routineNotificationsEnabled ?? true) || settings.routineNotificationSound === 'none'}
+              >
+                {isPlayingSound ? (
+                  <>
+                    <Square className="h-3.5 w-3.5 fill-current text-rose-500" /> Stop Sound
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-3.5 w-3.5 text-emerald-500" /> Preview Sound
+                  </>
+                )}
+              </Button>
+            </div>
+            <Select
+              value={settings.routineNotificationSound || 'common-hawk-cuckoo'}
+              onValueChange={(val) => updateSetting('routineNotificationSound', val)}
+              disabled={!(settings.routineNotificationsEnabled ?? true)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select sound" />
+              </SelectTrigger>
+              <SelectContent>
+                {NOTIFICATION_SOUNDS.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    <div className="flex flex-col text-left py-0.5">
+                      <span className="font-medium text-xs sm:text-sm">{s.name}</span>
+                      <span className="text-[10px] text-muted-foreground">{s.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Device & Notification Status */}
+          <div className="rounded-lg border border-border/70 p-3 bg-muted/20 space-y-2.5">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <Volume2 className="h-4 w-4 text-muted-foreground" />
+                <span className="text-xs font-medium">Device Permission</span>
+              </div>
+              <Badge
+                variant="outline"
+                className={`text-xs ${
+                  permissionStatus === 'granted'
+                    ? 'text-emerald-600 dark:text-emerald-400 border-emerald-500/40 bg-emerald-500/10'
+                    : permissionStatus === 'denied'
+                    ? 'text-rose-600 dark:text-rose-400 border-rose-500/40'
+                    : 'text-amber-600 dark:text-amber-400 border-amber-500/40'
+                }`}
+              >
+                {permissionStatus === 'granted' ? 'Enabled' : permissionStatus === 'denied' ? 'Blocked' : 'Default'}
+              </Badge>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              {permissionStatus !== 'granted' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRequestPermission}
+                  className="flex-1 h-8 text-xs min-w-35"
+                >
+                  <Bell className="mr-1.5 h-3.5 w-3.5" /> Request Permission
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleTestNotification}
+                className="flex-1 h-8 text-xs min-w-35"
+              >
+                <Sparkles className="mr-1.5 h-3.5 w-3.5 text-amber-500" /> Test Sound & Alert
+              </Button>
+            </div>
+
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              💡 <strong>On mobile phones</strong>: Notifications and sounds trigger when the app is installed/downloaded as a PWA on your home screen. Only activities with <strong>&quot;Notify me&quot;</strong> checked in your Routine Planner will ring.
+            </p>
           </div>
         </CardContent>
       </Card>

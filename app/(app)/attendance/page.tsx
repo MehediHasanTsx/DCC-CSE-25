@@ -100,6 +100,7 @@ export default function AttendancePage() {
     overallStats,
     subjectStats,
     targetInfo,
+    attendanceTarget,
     markAttendance,
   } = useAttendance(semesterId);
 
@@ -145,7 +146,7 @@ export default function AttendancePage() {
         <Card>
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground mb-1">Overall</p>
-            <p className={`text-2xl font-bold ${overallStats.percentage >= 75 ? 'text-green-500' : 'text-red-500'}`}>
+            <p className={`text-2xl font-bold ${overallStats.percentage >= (attendanceTarget || 80) ? 'text-green-500' : 'text-red-500'}`}>
               {overallStats.percentage}%
             </p>
             <Progress value={overallStats.percentage} className="mt-2 h-1.5" />
@@ -298,7 +299,7 @@ export default function AttendancePage() {
                       />
                       <p className="text-sm font-medium">{subject.name}</p>
                     </div>
-                    <p className={`text-lg font-bold ${stats.percentage >= 75 ? 'text-green-500' : 'text-red-500'}`}>
+                    <p className={`text-lg font-bold ${stats.percentage >= (attendanceTarget || 80) ? 'text-green-500' : 'text-red-500'}`}>
                       {stats.percentage}%
                     </p>
                   </div>

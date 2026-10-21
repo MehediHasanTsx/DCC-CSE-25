@@ -181,8 +181,10 @@ export interface Settings {
   theme: ThemeMode;
   currency: string;    // default 'BDT'
   currencySymbol: string; // default '৳'
-  attendanceTarget: number; // default 75
+  attendanceTarget: number; // default 80
   totalRequiredCredits: number; // default 160
+  routineNotificationsEnabled?: boolean; // default true
+  routineNotificationSound?: string; // default 'common-hawk-cuckoo'
   updatedAt: Date;
 }
 
@@ -358,6 +360,7 @@ export interface RoutineActivity {
   endTime: string;           // HH:mm
   category: ActivityCategory;
   notes?: string;
+  notify?: boolean;          // Whether to notify user at startTime
   order: number;             // Display order
   createdAt: Date;
   updatedAt: Date;

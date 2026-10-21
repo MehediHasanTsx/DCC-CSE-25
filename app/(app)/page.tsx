@@ -74,7 +74,7 @@ function StudentDashboardContent() {
   const { profile } = useProfile();
   const { user, isGuest } = useAuth();
   const semesterId = profile ? `semester-${profile.currentSemester}` : 'semester-1';
-  const { overallStats, targetInfo, records, markAttendance, bulkMark } = useAttendance(semesterId);
+  const { overallStats, targetInfo, attendanceTarget, records, markAttendance, bulkMark } = useAttendance(semesterId);
   const { subjects } = useSubjects(semesterId);
 
   const [cgpa, setCgpa] = useState<CgpaResult | null>(null);
@@ -271,10 +271,10 @@ function StudentDashboardContent() {
           }
           subtitle={
             targetInfo.isAboveTarget
-              ? 'Safe above 75%'
+              ? `Safe above ${attendanceTarget}%`
               : targetInfo.classesCanMiss > 0
               ? `Can miss ${targetInfo.classesCanMiss} class`
-              : `${targetInfo.classesNeededToReachTarget} needed for 75%`
+              : `${targetInfo.classesNeededToReachTarget} needed for ${attendanceTarget}%`
           }
           icon={Target}
           href="/attendance"

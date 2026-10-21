@@ -6,6 +6,7 @@ import { useAuth } from '@/components/providers/auth-provider';
 import { useDatabaseReady } from '@/components/providers/database-provider';
 import { profileService } from '@/lib/services/profile.service';
 import { AppShell } from '@/components/layout/app-shell';
+import { RoutineNotifier } from '@/components/shared/routine-notifier';
 
 const emptySubscribe = () => () => {};
 function useIsMounted() {
@@ -108,5 +109,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <AppShell>{children}</AppShell>;
+  return (
+    <AppShell>
+      <RoutineNotifier />
+      {children}
+    </AppShell>
+  );
 }
