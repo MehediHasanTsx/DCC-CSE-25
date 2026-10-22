@@ -64,6 +64,7 @@ import {
   stopNotificationSound,
   requestNotificationPermission,
 } from '@/lib/utils/sound';
+import { syncNotificationSchedules } from '@/lib/utils/schedule-sync';
 import type { Settings as SettingsType } from '@/types/database';
 
 export default function SettingsPage() {
@@ -198,6 +199,10 @@ export default function SettingsPage() {
     const updated = await settingsService.get();
     setSettings(updated);
     toast.success('Setting updated.');
+    // Re-sync notification schedules when notification settings change
+    if (key === 'routineNotificationsEnabled' || key === 'routineNotificationSound') {
+      void syncNotificationSchedules();
+    }
   };
 
   if (!profile || !settings) return null;

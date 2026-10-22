@@ -7,6 +7,7 @@ import { useDatabaseReady } from '@/components/providers/database-provider';
 import { profileService } from '@/lib/services/profile.service';
 import { AppShell } from '@/components/layout/app-shell';
 import { RoutineNotifier } from '@/components/shared/routine-notifier';
+import { NotificationPermissionPrompt } from '@/components/shared/notification-permission-prompt';
 
 const emptySubscribe = () => () => {};
 function useIsMounted() {
@@ -112,6 +113,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <AppShell>
       <RoutineNotifier />
+      <NotificationPermissionPrompt />
       {children}
     </AppShell>
   );

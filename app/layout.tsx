@@ -74,7 +74,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-image.png",
+        url: `${APP_URL}/og-image.png`,
         width: 1200,
         height: 630,
         alt: "DCC CSE 25 – Student Academic Dashboard",
@@ -86,7 +86,7 @@ export const metadata: Metadata = {
     title: "DCC CSE 25 – Student Academic Dashboard | Dhaka City College",
     description:
       "Manage your DCC CSE academic life in one place. Track attendance, calculate GPA and CGPA, view exam routines and results, manage fees, and organize your study plans.",
-    images: ["/og-image.png"],
+    images: [`${APP_URL}/og-image.png`],
   },
   robots: {
     index: true,
@@ -177,6 +177,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         <meta name="google-site-verification" content="EYwKFeyOENE8yzlVS7UB_G4r2sfsB1yCvptykocy6MQ" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
         <link rel="apple-touch-icon" sizes="192x192" href="/apple-icon.png" />

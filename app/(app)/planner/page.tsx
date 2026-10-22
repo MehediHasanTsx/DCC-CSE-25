@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useSyncExternalStore } from 'react';
 import { personalRoutineService, getCategoryMeta, ACTIVITY_CATEGORIES } from '@/lib/services/personal-routine.service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,6 +52,8 @@ import {
   Bell,
 } from 'lucide-react';
 import { formatTime, getLocalDateString, parseLocalDate } from '@/lib/utils/formatters';
+import { syncNotificationSchedules } from '@/lib/utils/schedule-sync';
+import { requestNotificationPermission } from '@/lib/utils/sound';
 import { toast } from 'sonner';
 import type {
   PersonalRoutine,
@@ -87,6 +89,15 @@ function getWeekStart(date: Date): Date {
   return d;
 }
 
+const emptySubscribe = () => () => {};
+function getNotifPermissionSnapshot(): NotificationPermission | null {
+  if (typeof window === 'undefined' || !('Notification' in window)) return null;
+  return Notification.permission;
+}
+function getNotifPermissionServerSnapshot(): NotificationPermission | null {
+  return null;
+}
+
 export default function PlannerPage() {
   const [activeTab, setActiveTab] = useState('today');
   const [routines, setRoutines] = useState<PersonalRoutine[]>([]);
@@ -112,6 +123,15 @@ export default function PlannerPage() {
   const [weeklyStats, setWeeklyStats] = useState<
     { date: string; dayLabel: string; total: number; completed: number; percentage: number }[]
   >([]);
+
+  // Notification permission check via useSyncExternalStore
+  const [overridePermission, setOverridePermission] = useState<NotificationPermission | null>(null);
+  const systemPermission = useSyncExternalStore(
+    emptySubscribe,
+    getNotifPermissionSnapshot,
+    getNotifPermissionServerSnapshot
+  );
+  const notifPermission = overridePermission ?? systemPermission;
 
   const loadRoutines = async () => {
     const r = await personalRoutineService.getAllRoutines();
@@ -196,6 +216,8 @@ export default function PlannerPage() {
     setDeleteTarget(null);
     await loadRoutines();
     await loadChecklist();
+    // Sync notification schedules to service worker
+    void syncNotificationSchedules();
   };
 
   // Navigate dates
@@ -245,6 +267,31 @@ export default function PlannerPage() {
           Plan your daily personal activities, habits, and checklist
         </p>
       </div>
+
+      {notifPermission === 'default' && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 dark:border-amber-500/20 dark:bg-amber-500/5">
+          <div className="flex items-center gap-2.5">
+            <Bell className="h-4 w-4 text-amber-500 shrink-0" />
+            <p className="text-xs sm:text-sm text-foreground">
+              <strong className="font-semibold text-amber-700 dark:text-amber-400">Enable routine alerts:</strong> Allow notifications so routine alarms ring even when DCC CSE 25 is closed, in sleep mode, or in the background.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            onClick={async () => {
+              const res = await requestNotificationPermission();
+              setOverridePermission(res);
+              if (res === 'granted') {
+                toast.success('Routine notifications enabled!');
+                await syncNotificationSchedules();
+              }
+            }}
+            className="text-xs h-7 px-3 bg-amber-500 hover:bg-amber-600 text-white shrink-0 self-end sm:self-auto"
+          >
+            Allow Notifications
+          </Button>
+        </div>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full grid grid-cols-3">
@@ -676,6 +723,8 @@ export default function PlannerPage() {
               setEditingRoutine(null);
               await loadRoutines();
               await loadChecklist();
+              // Sync notification schedules to service worker
+              void syncNotificationSchedules();
             }}
             onCancel={() => { setRoutineDialogOpen(false); setEditingRoutine(null); }}
           />
@@ -702,6 +751,8 @@ export default function PlannerPage() {
               setSelectedRoutineId(null);
               await loadRoutines();
               await loadChecklist();
+              // Sync notification schedules to service worker
+              void syncNotificationSchedules();
             }}
             onCancel={() => { setActivityDialogOpen(false); setEditingActivity(null); setSelectedRoutineId(null); }}
           />
@@ -878,6 +929,34 @@ function ActivityForm({
   const [notify, setNotify] = useState(activity?.notify ?? false);
   const [error, setError] = useState('');
 
+  const handleNotifyToggle = async (checked: boolean) => {
+    if (checked && typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        const perm = await requestNotificationPermission();
+        if (perm === 'granted') {
+          toast.success('Routine notifications enabled!', {
+            description: 'You will receive alarms and alerts for this activity.',
+          });
+          setNotify(true);
+          return;
+        } else {
+          toast.error('Notification permission required', {
+            description: 'Please allow notification permissions in your browser to receive routine alerts.',
+          });
+          setNotify(false);
+          return;
+        }
+      } else if (Notification.permission === 'denied') {
+        toast.error('Notifications blocked', {
+          description: 'Notifications are blocked in your browser settings. Please allow notifications for DCC CSE 25 in your URL bar.',
+        });
+        setNotify(false);
+        return;
+      }
+    }
+    setNotify(checked);
+  };
+
   const handleSubmit = () => {
     if (!title.trim()) {
       setError('Title is required');
@@ -978,8 +1057,8 @@ function ActivityForm({
           <Checkbox
             id="activity-notify"
             checked={notify}
-            onCheckedChange={(checked) => setNotify(!!checked)}
-            className="h-5 w-5 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+            onCheckedChange={handleNotifyToggle}
+            className="h-5 w-5 border-2 border-muted-foreground/50 data-checked:bg-amber-500 data-checked:border-amber-500 data-checked:text-white dark:border-muted-foreground/70 dark:data-checked:bg-amber-500 dark:data-checked:border-amber-500 dark:data-checked:text-white"
           />
         </div>
 

@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { personalRoutineService } from '@/lib/services/personal-routine.service';
 import { settingsService } from '@/lib/services/settings.service';
-import { playNotificationSound, isStandaloneApp } from '@/lib/utils/sound';
+import { playNotificationSound } from '@/lib/utils/sound';
+import { syncNotificationSchedules, sendKeepalive } from '@/lib/utils/schedule-sync';
 import { getLocalDateString } from '@/lib/utils/formatters';
 import { toast } from 'sonner';
 import type { DayOfWeek } from '@/types/database';
@@ -22,10 +23,42 @@ const DAY_NAMES: DayOfWeek[] = [
 export function RoutineNotifier() {
   const router = useRouter();
   const checkingRef = useRef(false);
+  const syncedRef = useRef(false);
+
+  // Sync schedules to SW on mount and periodically
+  const syncSchedules = useCallback(async () => {
+    try {
+      await syncNotificationSchedules();
+      syncedRef.current = true;
+    } catch (err) {
+      console.warn('Schedule sync failed:', err);
+    }
+  }, []);
 
   useEffect(() => {
     // Only run in client browser
     if (typeof window === 'undefined') return;
+
+    // Initial sync of schedules to service worker
+    void syncSchedules();
+
+    // Re-sync schedules every 5 minutes to pick up changes
+    const syncInterval = setInterval(() => {
+      void syncSchedules();
+    }, 5 * 60 * 1000);
+
+    // Keepalive ping every 25 seconds to prevent SW termination while app is open
+    const keepaliveInterval = setInterval(() => {
+      sendKeepalive();
+    }, 25000);
+
+    // Re-sync when page becomes visible again (user returns to tab)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        void syncSchedules();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
 
     const checkRoutineAlerts = async () => {
       if (checkingRef.current) return;
@@ -39,16 +72,7 @@ export function RoutineNotifier() {
 
         const sound = settings?.routineNotificationSound || 'common-hawk-cuckoo';
 
-        // 2. Determine if device condition applies
-        // If on mobile, prioritize when installed (standalone). Always allow if notification permission granted.
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        const standalone = isStandaloneApp();
-        if (isMobile && !standalone) {
-          // On mobile phones, only trigger if downloaded / installed as PWA (per user requirement)
-          return;
-        }
-
-        // 3. Find today's active routines
+        // 2. Find today's active routines
         const now = new Date();
         const todayStr = getLocalDateString(now);
         const dayName = DAY_NAMES[now.getDay()];
@@ -65,7 +89,7 @@ export function RoutineNotifier() {
 
         if (activeRoutines.length === 0) return;
 
-        // 4. Check activities for active routines
+        // 3. Check activities for active routines
         for (const routine of activeRoutines) {
           const activities = await personalRoutineService.getActivities(routine.id);
 
@@ -87,37 +111,7 @@ export function RoutineNotifier() {
               // Play notification sound (Common Hawk-Cuckoo by default)
               void playNotificationSound(sound);
 
-              // Native System Notification (Service Worker or Notification API)
-              if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-                try {
-                  if ('serviceWorker' in navigator) {
-                    const reg = await navigator.serviceWorker.ready;
-                    if (reg && reg.showNotification) {
-                      await reg.showNotification(`Time for ${activity.title}`, {
-                        body: `${activity.startTime} – ${activity.endTime} • Routine Priority Reminder`,
-                        icon: '/icon-192.png',
-                        badge: '/icon-192.png',
-                        tag: `routine-${activity.id}-${currentTimeStr}`,
-                        data: { url: '/planner' },
-                      });
-                    } else {
-                      new Notification(`Time for ${activity.title}`, {
-                        body: `${activity.startTime} – ${activity.endTime} • Routine Priority Reminder`,
-                        icon: '/icon-192.png',
-                      });
-                    }
-                  } else {
-                    new Notification(`Time for ${activity.title}`, {
-                      body: `${activity.startTime} – ${activity.endTime} • Routine Priority Reminder`,
-                      icon: '/icon-192.png',
-                    });
-                  }
-                } catch (e) {
-                  console.warn('System notification failed:', e);
-                }
-              }
-
-              // In-App Toast
+              // In-App Toast (the SW handles system notifications independently)
               toast(`🔔 Time for ${activity.title}`, {
                 description: `${activity.startTime} – ${activity.endTime} • Routine Priority Alert`,
                 duration: 7000,
@@ -142,8 +136,13 @@ export function RoutineNotifier() {
     // Check every 15 seconds so we never miss the minute change
     const interval = setInterval(checkRoutineAlerts, 15000);
 
-    return () => clearInterval(interval);
-  }, [router]);
+    return () => {
+      clearInterval(interval);
+      clearInterval(syncInterval);
+      clearInterval(keepaliveInterval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [router, syncSchedules]);
 
   return null;
 }
