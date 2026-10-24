@@ -105,6 +105,7 @@ export default function SettingsPage() {
     setPermissionStatus(res);
     if (res === 'granted') {
       toast.success('Notification permission granted!');
+      void syncNotificationSchedules();
     } else {
       toast.error('Notification permission was not granted.');
     }

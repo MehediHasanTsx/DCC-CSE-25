@@ -3,6 +3,8 @@ const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',
   '/favicon.ico',
+  '/icon-192.png',
+  '/icon-512.png',
   '/sounds/common-hawk-cuckoo.mp3',
   '/sounds/common-hawk-cuckoo.mpeg',
 ];
@@ -319,11 +321,20 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // 1. If an existing planner tab is open, focus it
       for (const client of clientList) {
         if (client.url.includes('/planner') && 'focus' in client) {
           return client.focus();
         }
       }
+      // 2. If any other tab of the app is open, focus and navigate it
+      for (const client of clientList) {
+        if ('focus' in client && 'navigate' in client) {
+          client.focus();
+          return client.navigate(targetUrl);
+        }
+      }
+      // 3. Otherwise, open a fresh window
       if (self.clients.openWindow) {
         return self.clients.openWindow(targetUrl);
       }
