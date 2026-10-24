@@ -116,12 +116,22 @@ export async function syncNotificationSchedules(): Promise<void> {
     // 1. Write directly to the schedule IndexedDB (SW can read this)
     try {
       const idb = await openScheduleDB();
-      const tx = idb.transaction(SCHEDULE_STORE, 'readwrite');
-      const store = tx.objectStore(SCHEDULE_STORE);
-      store.clear();
-      for (const schedule of schedules) {
-        store.put(schedule);
-      }
+      await new Promise<void>((resolve, reject) => {
+        const tx = idb.transaction(SCHEDULE_STORE, 'readwrite');
+        const store = tx.objectStore(SCHEDULE_STORE);
+        store.clear();
+        for (const schedule of schedules) {
+          store.put(schedule);
+        }
+        tx.oncomplete = () => {
+          idb.close();
+          resolve();
+        };
+        tx.onerror = () => {
+          idb.close();
+          reject(tx.error);
+        };
+      });
     } catch (err) {
       console.warn('[ScheduleSync] IDB write failed:', err);
     }
