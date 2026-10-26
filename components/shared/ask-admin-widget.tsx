@@ -1,7 +1,7 @@
 'use client';
 
 const WHATSAPP_URL =
-  'https://api.whatsapp.com/send/?phone=8801521743944&text=Hi%20Admin,%20I%20have%20a%20question%20about%20the%20DCC%20CSE%20Dashboard';
+  'https://api.whatsapp.com/send/?phone=8801999924202&text=Hi%20Admin,%20I%20have%20a%20question%20about%20the%20DCC%20CSE%20Dashboard';
 
 /**
  * Authentic WhatsApp Official Icon Glyph (Speech bubble outline + Phone handset)

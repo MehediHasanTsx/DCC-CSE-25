@@ -121,7 +121,7 @@ export default function DisclaimerPage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-2 pt-1 text-xs">
                 <a
-                  href="https://api.whatsapp.com/send/?phone=8801521743944"
+                  href="https://api.whatsapp.com/send/?phone=8801999924202"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 font-medium text-primary hover:underline"

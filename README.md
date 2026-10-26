@@ -91,7 +91,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 ## 👨‍💻 Developer & Author
 
-Built with ❤️ by **[Mehedi Hasan](https://api.whatsapp.com/send/?phone=8801521743944)** (Batch 25) for all Dhaka City College CSE students.
+Built with ❤️ by **[Mehedi Hasan](https://api.whatsapp.com/send/?phone=8801999924202)** (Batch 25) for all Dhaka City College CSE students.
 
 ---
 
