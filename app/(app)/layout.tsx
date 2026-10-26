@@ -79,8 +79,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     });
   }, [router, authLoading, canAccess, isGuest, isMounted, dbReady, isPublicHome, pathname]);
 
-  // During SSR / hydration or unauthenticated public homepage, render children directly
-  if (!isMounted || (isPublicHome && !canAccess)) {
+  // During SSR / hydration or verified unauthenticated public homepage, render children directly
+  if (!isMounted || (isPublicHome && !canAccess && !authLoading)) {
     return <>{children}</>;
   }
 

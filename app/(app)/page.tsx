@@ -49,20 +49,45 @@ import {
   ChevronRight,
   Target,
   CalendarOff,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '@/components/providers/auth-provider';
 import { DccCse25Landing } from '@/components/landing/public-landing';
+import { DEFAULT_LAB_GROUPS } from '@/lib/constants';
 import { toast } from 'sonner';
-import type { Assignment, ExamRoutineItem, RoutineSlot, Subject, DayOfWeek, AttendanceStatus, RoutineActivity } from '@/types/database';
+import type { Assignment, ExamRoutineItem, RoutineSlot, Subject, DayOfWeek, AttendanceStatus, RoutineActivity, LabGroup } from '@/types/database';
 
 export default function DashboardPage() {
   const { isAuthenticated, isGuest, isLoading } = useAuth();
 
-  // For unauthenticated visitors and crawlers (including SSR), render the SEO-rich public landing page
-  if (!isAuthenticated && !isGuest && !isLoading) {
-    return <DccCse25Landing />;
+  // If still verifying auth state, show clean loading placeholder rather than flashing landing page
+  if (isLoading && !isAuthenticated && !isGuest) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-2 w-2 rounded-full bg-primary/60"
+                style={{
+                  animation: `appBounce 1.4s ease-in-out ${i * 0.16}s infinite`,
+                }}
+              />
+            ))}
+          </div>
+          <style>{`
+            @keyframes appBounce {
+              0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+              40% { transform: scale(1.2); opacity: 1; }
+            }
+          `}</style>
+        </div>
+      </div>
+    );
   }
 
+  // For unauthenticated visitors and crawlers (including SSR), render the SEO-rich public landing page
   if (!isAuthenticated && !isGuest) {
     return <DccCse25Landing />;
   }
@@ -90,7 +115,46 @@ function StudentDashboardContent() {
   const [feeSummary, setFeeSummary] = useState<FeeSummary | null>(null);
   const [quickAttendanceOpen, setQuickAttendanceOpen] = useState(false);
   const [markingSubjectId, setMarkingSubjectId] = useState<string | null>(null);
-  const [todayClassFilter, setTodayClassFilter] = useState<string>('all');
+  const [labGroups, setLabGroups] = useState<LabGroup[]>(DEFAULT_LAB_GROUPS);
+
+  // Load configured lab groups from main-data
+  useEffect(() => {
+    let isMounted = true;
+    async function loadGroups() {
+      try {
+        const main = await mainDataService.fetchMainData(semesterId || 'semester-5');
+        if (isMounted && main?.labGroups && main.labGroups.length > 0) {
+          setLabGroups(main.labGroups);
+        }
+      } catch {
+        // use DEFAULT_LAB_GROUPS fallback
+      }
+    }
+    void loadGroups();
+    return () => { isMounted = false; };
+  }, [semesterId]);
+
+  // Dynamically catch student's group from their roll number and configured labGroups
+  const rollNumber = profile?.rollNumber;
+  const myGroup = useMemo<string | null>(() => {
+    if (!rollNumber) return null;
+    const clean = rollNumber.replace(/\D/g, '');
+    const roll = parseInt(clean, 10);
+    if (isNaN(roll)) return null;
+    const matched = labGroups.find((g) => roll >= g.rollStart && roll <= g.rollEnd);
+    return matched ? matched.group : null;
+  }, [rollNumber, labGroups]);
+
+  // Default to 'my-group' so the dashboard automatically displays the user's group
+  const [todayClassFilter, setTodayClassFilter] = useState<string>('my-group');
+
+  // Effective filter resolves 'my-group' to detected group, or falls back to 'all'
+  const effectiveFilter = useMemo(() => {
+    if (todayClassFilter === 'my-group') {
+      return myGroup || 'all';
+    }
+    return todayClassFilter;
+  }, [todayClassFilter, myGroup]);
 
   // Derive unique group values from today's classes for filter pills
   const todayGroupOptions = useMemo(() => {
@@ -101,16 +165,16 @@ function StudentDashboardContent() {
     return Array.from(groups).sort();
   }, [todayClasses]);
 
-  // Filtered today classes based on selected group filter
+  // Filtered today classes: dynamically shows theory classes + user's/selected group classes
   const filteredTodayClasses = useMemo(() => {
-    if (todayClassFilter === 'all') return todayClasses;
+    if (effectiveFilter === 'all') return todayClasses;
     return todayClasses.filter((slot) => {
       const slotGroup = slot.group || 'All';
-      if (todayClassFilter === 'All') return slotGroup === 'All';
+      if (effectiveFilter === 'All') return slotGroup === 'All';
       // Show both the selected group AND theory classes (group 'All')
-      return slotGroup === todayClassFilter || slotGroup === 'All';
+      return slotGroup === effectiveFilter || slotGroup === 'All';
     });
-  }, [todayClasses, todayClassFilter]);
+  }, [todayClasses, effectiveFilter]);
 
   useEffect(() => {
     if (!semesterId) return;
@@ -321,12 +385,20 @@ function StudentDashboardContent() {
           <CardHeader className="pb-3 border-b border-border/40">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div>
-                <CardTitle className="text-base sm:text-lg lg:text-xl font-semibold flex items-center gap-2">
-                  <Clock className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
-                  Today&apos;s Schedule
-                </CardTitle>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <CardTitle className="text-base sm:text-lg lg:text-xl font-semibold flex items-center gap-2">
+                    <Clock className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
+                    Today&apos;s Schedule
+                  </CardTitle>
+                  {myGroup && effectiveFilter === myGroup && (
+                    <Badge variant="outline" className="text-[11px] px-2 py-0.5 bg-primary/10 text-primary border-primary/20 font-medium flex items-center gap-1">
+                      <Users className="h-3 w-3" /> Group {myGroup} {rollNumber ? `(Roll ${rollNumber})` : ''}
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-xs lg:text-sm text-muted-foreground mt-0.5">
-                  {filteredTodayClasses.length} classes scheduled for today
+                  {filteredTodayClasses.length} {filteredTodayClasses.length === 1 ? 'class' : 'classes'} scheduled for today
+                  {myGroup && effectiveFilter === myGroup ? ` for your group` : ''}
                 </p>
               </div>
 
@@ -377,8 +449,22 @@ function StudentDashboardContent() {
             </div>
 
             {/* Section / Group Filter Pills */}
-            {todayGroupOptions.length > 1 && (
+            {(todayGroupOptions.length > 1 || myGroup) && (
               <div className="flex items-center gap-1.5 flex-wrap pt-2">
+                {myGroup && (
+                  <button
+                    type="button"
+                    onClick={() => setTodayClassFilter('my-group')}
+                    className={`px-3 py-1 lg:px-3.5 lg:py-1.5 rounded-full text-xs lg:text-sm font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                      todayClassFilter === 'my-group'
+                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'
+                    }`}
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    My Group ({myGroup})
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setTodayClassFilter('all')}
@@ -390,24 +476,25 @@ function StudentDashboardContent() {
                 >
                   All ({todayClasses.length})
                 </button>
-                {todayGroupOptions.map((g) => {
-                  const count = todayClasses.filter((s) => (s.group || 'All') === g).length;
-                  const isTheory = g === 'All';
-                  return (
-                    <button
-                      key={g}
-                      type="button"
-                      onClick={() => setTodayClassFilter(g)}
-                      className={`px-3 py-1 lg:px-3.5 lg:py-1.5 rounded-full text-xs lg:text-sm font-medium transition-all cursor-pointer ${
-                        todayClassFilter === g
-                          ? 'bg-primary text-primary-foreground shadow-xs'
-                          : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'
-                      }`}
-                    >
-                      {isTheory ? 'Theory' : `Group ${g}`} ({count})
-                    </button>
-                  );
-                })}
+                {todayGroupOptions
+                  .filter((g) => g !== 'All' && (!myGroup || g !== myGroup))
+                  .map((g) => {
+                    const count = todayClasses.filter((s) => (s.group || 'All') === g).length;
+                    return (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => setTodayClassFilter(g)}
+                        className={`px-3 py-1 lg:px-3.5 lg:py-1.5 rounded-full text-xs lg:text-sm font-medium transition-all cursor-pointer ${
+                          todayClassFilter === g
+                            ? 'bg-primary text-primary-foreground shadow-xs'
+                            : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'
+                        }`}
+                      >
+                        Group {g} ({count})
+                      </button>
+                    );
+                  })}
               </div>
             )}
           </CardHeader>
@@ -732,7 +819,8 @@ function StudentDashboardContent() {
               Quick Attendance
             </DialogTitle>
             <DialogDescription>
-              Mark attendance for today&apos;s classes (
+              Mark attendance for today&apos;s classes
+              {myGroup && effectiveFilter === myGroup ? ` (Group ${myGroup})` : ''} (
               {formatDate(getLocalDateString(), {
                 weekday: 'short',
                 month: 'short',
@@ -743,9 +831,9 @@ function StudentDashboardContent() {
           </DialogHeader>
 
           <div className="space-y-3 py-2">
-            {todayClasses.length === 0 ? (
+            {filteredTodayClasses.length === 0 ? (
               <p className="text-xs text-muted-foreground text-center py-6">
-                No classes scheduled for today on your routine.
+                {todayClasses.length === 0 ? 'No classes scheduled for today on your routine.' : 'No classes match your group for today.'}
               </p>
             ) : (
               <>
@@ -756,7 +844,7 @@ function StudentDashboardContent() {
                     className="text-xs h-8 gap-1.5 border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 cursor-pointer"
                     onClick={async () => {
                       const todayIso = getLocalDateString();
-                      const recordsToMark = todayClasses.map((s) => ({
+                      const recordsToMark = filteredTodayClasses.map((s) => ({
                         subjectId: s.subjectId,
                         status: 'noClass' as AttendanceStatus,
                       }));
@@ -777,7 +865,7 @@ function StudentDashboardContent() {
                     className="text-xs h-8 gap-1.5 border-emerald-500/40 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 cursor-pointer"
                     onClick={async () => {
                       const todayIso = getLocalDateString();
-                      const recordsToMark = todayClasses.map((s) => ({
+                      const recordsToMark = filteredTodayClasses.map((s) => ({
                         subjectId: s.subjectId,
                         status: 'present' as AttendanceStatus,
                       }));
@@ -795,7 +883,7 @@ function StudentDashboardContent() {
                 </div>
 
                 <div className="space-y-2 max-h-75 overflow-y-auto pr-1">
-                  {todayClasses.map((slot) => {
+                  {filteredTodayClasses.map((slot) => {
                     const todayIso = getLocalDateString();
                     const att = records.find(
                       (r) => r.subjectId === slot.subjectId && r.date === todayIso

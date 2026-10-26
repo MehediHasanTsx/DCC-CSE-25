@@ -102,12 +102,7 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [cachedUser, setCachedUser] = useState<AuthUser | null>(() => getStoredAuthUser());
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      return getStoredAuthUser();
-    }
-    return null;
-  });
+  const [user, setUser] = useState<AuthUser | null>(() => getStoredAuthUser());
   const [isLoading, setIsLoading] = useState(true);
   const [isOffline, setIsOffline] = useState<boolean>(
     () => typeof navigator !== 'undefined' && !navigator.onLine
