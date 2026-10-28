@@ -6,6 +6,7 @@ import { personalRoutineService } from '@/lib/services/personal-routine.service'
 import { settingsService } from '@/lib/services/settings.service';
 import { playNotificationSound } from '@/lib/utils/sound';
 import { syncNotificationSchedules, sendKeepalive } from '@/lib/utils/schedule-sync';
+import { isNativeAppSync, setupNotificationListeners } from '@/lib/utils/capacitor-notifications';
 import { getLocalDateString } from '@/lib/utils/formatters';
 import { toast } from 'sonner';
 import type { DayOfWeek } from '@/types/database';
@@ -25,7 +26,7 @@ export function RoutineNotifier() {
   const checkingRef = useRef(false);
   const syncedRef = useRef(false);
 
-  // Sync schedules to SW on mount and periodically
+  // Sync schedules to native/SW on mount and periodically
   const syncSchedules = useCallback(async () => {
     try {
       await syncNotificationSchedules();
@@ -39,7 +40,14 @@ export function RoutineNotifier() {
     // Only run in client browser
     if (typeof window === 'undefined') return;
 
-    // Initial sync of schedules to service worker
+    const isNative = isNativeAppSync();
+
+    // On native Capacitor, set up tap-to-open listener
+    if (isNative) {
+      void setupNotificationListeners();
+    }
+
+    // Initial sync of schedules
     void syncSchedules();
 
     // Re-sync schedules every 5 minutes to pick up changes
@@ -47,12 +55,15 @@ export function RoutineNotifier() {
       void syncSchedules();
     }, 5 * 60 * 1000);
 
-    // Keepalive ping every 25 seconds to prevent SW termination while app is open
-    const keepaliveInterval = setInterval(() => {
-      sendKeepalive();
-    }, 25000);
+    // Keepalive ping every 25 seconds — only needed for web/PWA, not native
+    let keepaliveInterval: ReturnType<typeof setInterval> | null = null;
+    if (!isNative) {
+      keepaliveInterval = setInterval(() => {
+        sendKeepalive();
+      }, 25000);
+    }
 
-    // Re-sync when page becomes visible again (user returns to tab)
+    // Re-sync when page becomes visible again (user returns to tab/app)
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
         void syncSchedules();
@@ -60,6 +71,9 @@ export function RoutineNotifier() {
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
+    // ── In-app foreground checker (toast + sound) ─────
+    // This runs in both native and web to provide in-app toasts and sound
+    // when the user has the app in the foreground.
     const checkRoutineAlerts = async () => {
       if (checkingRef.current) return;
       checkingRef.current = true;
@@ -111,7 +125,7 @@ export function RoutineNotifier() {
               // Play notification sound (Common Hawk-Cuckoo by default)
               void playNotificationSound(sound);
 
-              // In-App Toast (the SW handles system notifications independently)
+              // In-App Toast (native notifications are handled by the OS independently)
               toast(`🔔 Time for ${activity.title}`, {
                 description: `${activity.startTime} – ${activity.endTime} • Routine Priority Alert`,
                 duration: 7000,
@@ -139,7 +153,7 @@ export function RoutineNotifier() {
     return () => {
       clearInterval(interval);
       clearInterval(syncInterval);
-      clearInterval(keepaliveInterval);
+      if (keepaliveInterval) clearInterval(keepaliveInterval);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [router, syncSchedules]);

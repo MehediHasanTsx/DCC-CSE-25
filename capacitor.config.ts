@@ -9,7 +9,7 @@ const config: CapacitorConfig = {
     // url: 'http://localhost:3000',
 
     // For production: point to your Vercel deployment
-    // url: 'https://your-app.vercel.app',
+    url: 'https://dcc-cse-25.vercel.app/',
 
     // Set to true only during development with http
     cleartext: false,
@@ -22,6 +22,14 @@ const config: CapacitorConfig = {
     StatusBar: {
       style: 'DARK',
       backgroundColor: '#090d16',
+    },
+    LocalNotifications: {
+      // Use a small icon for the notification tray (Android)
+      smallIcon: 'ic_stat_notification',
+      // Accent color for the notification icon
+      iconColor: '#f59e0b',
+      // Default notification sound
+      sound: 'notification.wav',
     },
   },
 };

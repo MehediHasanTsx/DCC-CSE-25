@@ -14,7 +14,7 @@ DCC CSE can be packaged as a native Android application using Capacitor.
 ### 1. Install Capacitor Dependencies
 
 ```bash
-bun add @capacitor/core @capacitor/app @capacitor/status-bar
+bun add @capacitor/core @capacitor/app @capacitor/status-bar @capacitor/local-notifications
 bun add -d @capacitor/cli
 ```
 
@@ -83,6 +83,32 @@ npx cap open android
 
 ## Android-Specific Features
 
+### Native Notifications (Local Notifications)
+
+The app uses `@capacitor/local-notifications` to schedule routine notifications
+through Android's **AlarmManager**. This ensures notifications fire reliably even
+when:
+- The app is in the background
+- The app is swiped away from recent apps
+- The device is in Doze mode (using `allowWhileIdle`)
+
+**How it works:**
+1. When the user creates/updates routines with "Notify me" enabled, the app
+   schedules native Android notifications for each activity at the exact time.
+2. For weekday-based routines, recurring notifications are set per weekday.
+3. For specific-date routines, one-time notifications are scheduled.
+4. Schedules are re-synced every 5 minutes and when the app returns to foreground.
+
+**Notification icon setup (Android Studio):**
+After running `npx cap add android`, add a notification icon:
+1. Right-click `android/app/src/main/res` ? **New ? Image Asset**
+2. Select **Icon Type: Notification**
+3. Name it `ic_stat_notification`
+4. Use a simple monochrome version of your app icon
+
+> **Note:** Notifications only work in the native Android app — desktop/browser
+> users do not receive push or scheduled notifications.
+
 ### Back Button
 The app handles the Android back button to:
 - Close open modals/dialogs
@@ -109,3 +135,5 @@ The status bar is styled to match the app's dark theme (`#090d16`).
 | API calls failing | Ensure your Vercel deployment is live and CORS is configured |
 | Build errors | Run `npx cap sync` to ensure native projects are up to date |
 | Slow loading | The first load requires internet; subsequent loads use cached assets |
+| Notifications not firing when app is closed | Ensure `@capacitor/local-notifications` is installed and `npx cap sync` has been run. Check that notification permission is granted in Android Settings. |
+| Notification icon missing | Create `ic_stat_notification` in Android Studio (see Native Notifications section above) |

@@ -7,6 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Bell, Sparkles, Volume2, X, Moon, CheckCircle2 } from 'lucide-react';
 import { requestNotificationPermission } from '@/lib/utils/sound';
 import { syncNotificationSchedules } from '@/lib/utils/schedule-sync';
+import {
+  isNativeAppSync,
+  requestNativeNotificationPermission,
+} from '@/lib/utils/capacitor-notifications';
 import { toast } from 'sonner';
 
 const PROMPT_DISMISSED_KEY = 'dcc_notif_prompt_dismissed_until';
@@ -15,8 +19,22 @@ const CURRENT_APP_VERSION = '1.3.0'; // Incremented on updates to re-prompt if n
 
 const emptySubscribe = () => () => {};
 
-function getSnapshot(): 'updated' | 'standalone' | 'none' {
-  if (typeof window === 'undefined' || !('Notification' in window)) return 'none';
+function getSnapshot(): 'updated' | 'standalone' | 'native' | 'none' {
+  if (typeof window === 'undefined') return 'none';
+
+  // ── Native Capacitor app: always prompt if not yet granted ──
+  if (isNativeAppSync()) {
+    const dismissedUntil = localStorage.getItem(PROMPT_DISMISSED_KEY);
+    if (dismissedUntil && Date.now() < parseInt(dismissedUntil, 10)) {
+      return 'none';
+    }
+    // We can't synchronously check native permission, so return 'native'
+    // and let the component handle the async check
+    return 'native';
+  }
+
+  // ── Web / PWA: only show for desktop/browser users who have it installed ──
+  if (!('Notification' in window)) return 'none';
   if (Notification.permission !== 'default') return 'none';
 
   const dismissedUntil = localStorage.getItem(PROMPT_DISMISSED_KEY);
@@ -50,7 +68,7 @@ function getSnapshot(): 'updated' | 'standalone' | 'none' {
   return 'none';
 }
 
-function getServerSnapshot(): 'updated' | 'standalone' | 'none' {
+function getServerSnapshot(): 'updated' | 'standalone' | 'native' | 'none' {
   return 'none';
 }
 
@@ -59,6 +77,19 @@ export function NotificationPermissionPrompt() {
   const [eventReason, setEventReason] = useState<'installed' | 'updated' | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const [requesting, setRequesting] = useState(false);
+  const [nativePermissionGranted, setNativePermissionGranted] = useState(false);
+
+  // For native apps, check if permission is already granted (async)
+  useEffect(() => {
+    if (initialReason === 'native') {
+      import('@/lib/utils/capacitor-notifications').then(async (mod) => {
+        const status = await mod.checkNativeNotificationPermission();
+        if (status === 'granted') {
+          setNativePermissionGranted(true);
+        }
+      });
+    }
+  }, [initialReason]);
 
   useEffect(() => {
     // Listen for PWA installation event
@@ -91,20 +122,40 @@ export function NotificationPermissionPrompt() {
   const handleAllowNotifications = async () => {
     setRequesting(true);
     try {
-      const permission = await requestNotificationPermission();
-      if (permission === 'granted') {
-        toast.success('Routine notifications enabled!', {
-          description: 'You will receive alarms and alerts even when the app is minimized or closed.',
-          icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" />,
-        });
-        // Immediately sync schedules to service worker
-        await syncNotificationSchedules();
-        setDismissed(true);
-      } else if (permission === 'denied') {
-        toast.error('Permission not granted', {
-          description: 'Notifications are blocked. You can enable them later in your browser or device settings.',
-        });
-        setDismissed(true);
+      const isNative = isNativeAppSync();
+
+      if (isNative) {
+        // Use native Capacitor permission flow
+        const result = await requestNativeNotificationPermission();
+        if (result === 'granted') {
+          toast.success('Routine notifications enabled!', {
+            description: 'You will receive notifications even when the app is closed or removed from recent apps.',
+            icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" />,
+          });
+          await syncNotificationSchedules();
+          setDismissed(true);
+        } else {
+          toast.error('Permission not granted', {
+            description: 'Notifications are blocked. You can enable them later in your device settings.',
+          });
+          setDismissed(true);
+        }
+      } else {
+        // Web Notification API
+        const permission = await requestNotificationPermission();
+        if (permission === 'granted') {
+          toast.success('Routine notifications enabled!', {
+            description: 'You will receive alarms and alerts even when the app is minimized or closed.',
+            icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" />,
+          });
+          await syncNotificationSchedules();
+          setDismissed(true);
+        } else if (permission === 'denied') {
+          toast.error('Permission not granted', {
+            description: 'Notifications are blocked. You can enable them later in your browser or device settings.',
+          });
+          setDismissed(true);
+        }
       }
     } catch (err) {
       console.warn('Notification permission error:', err);
@@ -125,9 +176,13 @@ export function NotificationPermissionPrompt() {
   };
 
   const activeReason = eventReason ?? (initialReason !== 'none' ? initialReason : null);
-  const showPrompt = !dismissed && activeReason !== null;
+
+  // Don't show if dismissed, or if native permission already granted
+  const showPrompt = !dismissed && activeReason !== null && !(activeReason === 'native' && nativePermissionGranted);
 
   if (!showPrompt) return null;
+
+  const isNative = isNativeAppSync();
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-lg animate-in fade-in slide-in-from-bottom-5 duration-300 md:bottom-6">
@@ -144,11 +199,13 @@ export function NotificationPermissionPrompt() {
                     Enable Routine Notifications
                   </h3>
                   <Badge variant="secondary" className="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-300 border-none font-medium">
-                    {activeReason === 'installed' ? 'App Installed' : activeReason === 'updated' ? 'New Update' : 'Recommended'}
+                    {activeReason === 'native' ? 'Mobile App' : activeReason === 'installed' ? 'App Installed' : activeReason === 'updated' ? 'New Update' : 'Recommended'}
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Allow notifications so your class and study routine alarms can ring properly.
+                  {isNative
+                    ? 'Allow notifications so your routine alarms ring even when the app is closed.'
+                    : 'Allow notifications so your class and study routine alarms can ring properly.'}
                 </p>
               </div>
             </div>
@@ -164,7 +221,7 @@ export function NotificationPermissionPrompt() {
           <div className="my-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5 rounded-md bg-muted/40 p-2">
               <Moon className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-              <span>Works in sleep & closed mode</span>
+              <span>{isNative ? 'Works when app is closed' : 'Works in sleep & closed mode'}</span>
             </div>
             <div className="flex items-center gap-1.5 rounded-md bg-muted/40 p-2">
               <Volume2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />

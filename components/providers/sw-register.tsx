@@ -2,10 +2,16 @@
 
 import { useEffect } from 'react';
 import { syncNotificationSchedules } from '@/lib/utils/schedule-sync';
+import { isNativeAppSync } from '@/lib/utils/capacitor-notifications';
 
 export function SwRegister() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
+
+    // On native Capacitor, we don't need the service worker for notifications
+    // (native AlarmManager handles that), but we still register it for
+    // caching / offline support.
+    const isNative = isNativeAppSync();
 
     // Register the service worker
     navigator.serviceWorker
@@ -27,10 +33,12 @@ export function SwRegister() {
           }
         }
 
-        // Check for updates periodically
-        setInterval(() => {
-          registration.update();
-        }, 60 * 60 * 1000); // Check for SW updates every hour
+        // Check for updates periodically (only on web, not native)
+        if (!isNative) {
+          setInterval(() => {
+            registration.update();
+          }, 60 * 60 * 1000); // Check for SW updates every hour
+        }
       })
       .catch((err) => {
         console.error('Service worker registration failed:', err);
