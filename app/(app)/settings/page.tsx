@@ -65,6 +65,12 @@ import {
   requestNotificationPermission,
 } from '@/lib/utils/sound';
 import { syncNotificationSchedules } from '@/lib/utils/schedule-sync';
+import {
+  isNativeAppSync,
+  requestNativeNotificationPermission,
+  checkNativeNotificationPermission,
+  scheduleTestNotification,
+} from '@/lib/utils/capacitor-notifications';
 import type { Settings as SettingsType } from '@/types/database';
 
 export default function SettingsPage() {
@@ -77,6 +83,8 @@ export default function SettingsPage() {
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>(() => {
+    // For native apps, we'll check async in useEffect below
+    if (isNativeAppSync()) return 'default';
     if (typeof window !== 'undefined' && 'Notification' in window) {
       return Notification.permission;
     }
@@ -86,6 +94,15 @@ export default function SettingsPage() {
 
   useEffect(() => {
     settingsService.get().then(setSettings);
+
+    // For native Capacitor apps, check native notification permission
+    if (isNativeAppSync()) {
+      checkNativeNotificationPermission().then((status) => {
+        if (status === 'granted') setPermissionStatus('granted');
+        else if (status === 'denied') setPermissionStatus('denied');
+        else setPermissionStatus('default');
+      });
+    }
   }, []);
 
   const handlePreviewSound = async () => {
@@ -101,6 +118,17 @@ export default function SettingsPage() {
   };
 
   const handleRequestPermission = async () => {
+    if (isNativeAppSync()) {
+      const result = await requestNativeNotificationPermission();
+      setPermissionStatus(result === 'granted' ? 'granted' : 'denied');
+      if (result === 'granted') {
+        toast.success('Notification permission granted!');
+        void syncNotificationSchedules();
+      } else {
+        toast.error('Notification permission was not granted.');
+      }
+      return;
+    }
     const res = await requestNotificationPermission();
     setPermissionStatus(res);
     if (res === 'granted') {

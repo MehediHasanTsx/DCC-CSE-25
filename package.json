@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/local-notifications": "^8.3.1",
     "@hookform/resolvers": "^5.7.1",
     "@neondatabase/serverless": "^1.1.0",
     "bcryptjs": "^3.0.3",

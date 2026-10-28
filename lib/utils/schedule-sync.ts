@@ -1,14 +1,23 @@
 /**
  * Notification Schedule Sync
  * 
- * Syncs routine notification schedules from the app's Dexie database
- * to a separate IndexedDB store that the service worker can read
- * independently when the app is backgrounded or closed.
+ * Syncs routine notification schedules from the app's Dexie database.
+ * 
+ * - **Native app (Capacitor)**: Uses @capacitor/local-notifications to
+ *   schedule alarms through Android's AlarmManager.  These fire reliably
+ *   even when the app is fully closed or swiped away.
+ * - **Web / PWA**: Falls back to the service-worker IndexedDB approach
+ *   (which only works while the browser/PWA process is alive).
  */
 
 import { db } from '@/lib/db/database';
 import { hasActiveDb } from '@/lib/db/user-db';
 import { settingsService } from '@/lib/services/settings.service';
+import {
+  isNativeAppSync,
+  scheduleNativeNotifications,
+  cancelAllNativeNotifications,
+} from '@/lib/utils/capacitor-notifications';
 
 const SCHEDULE_DB_NAME = 'dcc_notification_schedules';
 const SCHEDULE_DB_VERSION = 1;
@@ -104,14 +113,30 @@ async function buildSchedules(): Promise<NotificationSchedule[]> {
 }
 
 /**
- * Sync schedules to both IndexedDB (for SW direct access) and via postMessage
+ * Sync schedules.
+ *
+ * - Native (Capacitor): schedules via @capacitor/local-notifications
+ * - Web / PWA: writes to IndexedDB + postMessage to the service worker
  */
 export async function syncNotificationSchedules(): Promise<void> {
   if (typeof window === 'undefined') return;
-  if (!('serviceWorker' in navigator)) return;
 
   try {
     const schedules = await buildSchedules();
+
+    // ── Native path (Capacitor Android) ──────────────
+    if (isNativeAppSync()) {
+      if (schedules.length === 0) {
+        await cancelAllNativeNotifications();
+      } else {
+        await scheduleNativeNotifications(schedules);
+      }
+      // No need for SW-based scheduling on native
+      return;
+    }
+
+    // ── Web / PWA path ───────────────────────────────
+    if (!('serviceWorker' in navigator)) return;
 
     // 1. Write directly to the schedule IndexedDB (SW can read this)
     try {
@@ -167,11 +192,12 @@ export async function syncNotificationSchedules(): Promise<void> {
 }
 
 /**
- * Send a keepalive ping to the service worker to prevent it from being killed
- * This should be called periodically from the app while it's open.
+ * Send a keepalive ping to the service worker to prevent it from being killed.
+ * Only relevant for the web/PWA path — native notifications don't need this.
  */
 export function sendKeepalive(): void {
   if (typeof window === 'undefined') return;
+  if (isNativeAppSync()) return; // Not needed on native
   if (!('serviceWorker' in navigator)) return;
 
   navigator.serviceWorker.ready.then((reg) => {
