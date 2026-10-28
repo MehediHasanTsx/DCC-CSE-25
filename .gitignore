@@ -46,3 +46,9 @@ next-env.d.ts
 
 # drizzle migrations
 /drizzle/
+
+# IDEs and Android builds
+.idea/
+android/.gradle/
+android/app/build/
+android/build/
