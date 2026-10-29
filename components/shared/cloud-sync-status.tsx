@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { cloudSyncService, type SyncStatus } from '@/lib/services/cloud-sync.service';
 import { Cloud, RefreshCw, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,6 +12,7 @@ export function CloudSyncStatus({
   variant?: 'compact' | 'card' | 'modern';
   className?: string;
 }) {
+  const router = useRouter();
   const [status, setStatus] = useState<SyncStatus>(cloudSyncService.getStatus());
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(cloudSyncService.getLastSyncTime());
   const [isManualSyncing, setIsManualSyncing] = useState(false);
@@ -33,7 +35,17 @@ export function CloudSyncStatus({
       if (res.success) {
         toast.success(res.message || 'All records synced with cloud.');
       } else {
-        toast.error(res.message || 'Sync failed. Will retry automatically.');
+        if (res.message?.includes('Session expired')) {
+          toast.error(res.message, {
+            duration: 8000,
+            action: {
+              label: 'Log In',
+              onClick: () => { router.push('/login'); },
+            },
+          });
+        } else {
+          toast.error(res.message || 'Sync failed. Will retry automatically.');
+        }
       }
     } catch {
       toast.error('Sync error. Please check your internet connection.');
@@ -42,10 +54,14 @@ export function CloudSyncStatus({
     }
   };
 
+  const isBrowserOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
+
   const tooltipText = isSyncing
     ? 'Syncing changes to cloud...'
     : status === 'error'
-    ? 'Offline — changes saved locally. Will retry when connected.'
+    ? isBrowserOnline
+      ? 'Sync error or session expired. Click to retry sync or re-login.'
+      : 'Offline — changes saved locally. Will retry when connected.'
     : lastSyncTime
     ? `All changes saved to cloud · Last synced ${lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · Click to sync now`
     : 'All changes saved to cloud · Click to sync now';
@@ -97,7 +113,9 @@ export function CloudSyncStatus({
         {isSyncing ? (
           <span className="text-sky-600 dark:text-sky-400 font-semibold">Syncing</span>
         ) : status === 'error' ? (
-          <span className="text-rose-600 dark:text-rose-400 font-semibold">Offline</span>
+          <span className="text-rose-600 dark:text-rose-400 font-semibold">
+            {isBrowserOnline ? 'Sync Error' : 'Offline'}
+          </span>
         ) : (
           <span className="text-muted-foreground group-hover:text-foreground transition-colors">
             Synced

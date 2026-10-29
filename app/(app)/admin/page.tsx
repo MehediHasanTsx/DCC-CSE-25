@@ -63,6 +63,15 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [lastPublished, setLastPublished] = useState<string | null>(null);
   const [isDraftDirty, setIsDraftDirty] = useState(false);
+  const [hasLocalDraft, setHasLocalDraft] = useState<{
+    savedAt: string;
+    subjects?: Subject[];
+    routine?: RoutineSlot[];
+    sections?: SectionConfig[];
+    labGroups?: LabGroup[];
+    assignments?: Assignment[];
+    examRoutines?: ExamRoutineItem[];
+  } | null>(null);
 
   // In-memory main data state being managed
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -121,6 +130,21 @@ export default function AdminPage() {
       setExamRoutines(data.examRoutines || (semId === 'semester-5' ? DEFAULT_5TH_SEMESTER_EXAM_ROUTINE : []));
       setLastPublished(data.updatedAt ? new Date(data.updatedAt).toLocaleString() : null);
       setIsDraftDirty(false);
+
+      // Check if an unsaved draft from a previous session (e.g. abrupt laptop shutdown) exists
+      if (typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem(`dcc_admin_dirty_draft_${semId}`);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && (parsed.routine?.length || parsed.subjects?.length)) {
+              setHasLocalDraft(parsed);
+            }
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      }
     } catch (err) {
       console.error(err);
       toast.error('Failed to load main data.');
@@ -128,6 +152,51 @@ export default function AdminPage() {
       setLoading(false);
     }
   }, []);
+
+  // Auto-save draft locally so an unexpected shutdown or crash never loses routine edits
+  useEffect(() => {
+    if (!isDraftDirty || typeof window === 'undefined') return;
+    const timeout = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          `dcc_admin_dirty_draft_${semesterId}`,
+          JSON.stringify({
+            savedAt: new Date().toISOString(),
+            subjects,
+            routine,
+            sections,
+            labGroups,
+            assignments,
+            examRoutines,
+          })
+        );
+      } catch {
+        // Ignore quota
+      }
+    }, 1000);
+    return () => clearTimeout(timeout);
+  }, [isDraftDirty, semesterId, subjects, routine, sections, labGroups, assignments, examRoutines]);
+
+  const handleRestoreDraft = () => {
+    if (!hasLocalDraft) return;
+    if (hasLocalDraft.subjects) setSubjects(hasLocalDraft.subjects);
+    if (hasLocalDraft.routine) setRoutine(hasLocalDraft.routine);
+    if (hasLocalDraft.sections) setSections(hasLocalDraft.sections);
+    if (hasLocalDraft.labGroups) setLabGroups(hasLocalDraft.labGroups);
+    if (hasLocalDraft.assignments) setAssignments(hasLocalDraft.assignments);
+    if (hasLocalDraft.examRoutines) setExamRoutines(hasLocalDraft.examRoutines);
+    setIsDraftDirty(true);
+    setHasLocalDraft(null);
+    toast.success('Restored your unsaved draft from the previous session!');
+  };
+
+  const handleDiscardDraft = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(`dcc_admin_dirty_draft_${semesterId}`);
+    }
+    setHasLocalDraft(null);
+    toast.info('Discarded previous local draft.');
+  };
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -154,10 +223,31 @@ export default function AdminPage() {
       });
       setLastPublished(new Date(result.updatedAt).toLocaleString());
       setIsDraftDirty(false);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(`dcc_admin_dirty_draft_${semesterId}`);
+      }
+      setHasLocalDraft(null);
       toast.success(`Published Main Data for Semester ${selectedSemester} to Cloud!`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to publish';
-      toast.error(message);
+      if (
+        message.includes('Forbidden') ||
+        message.includes('403') ||
+        message.includes('401') ||
+        message.includes('Admin access required')
+      ) {
+        toast.error('Admin session expired. Please log out and log back in as Admin to publish.', {
+          duration: 10000,
+          action: {
+            label: 'Log In Again',
+            onClick: () => {
+              router.push('/login');
+            },
+          },
+        });
+      } else {
+        toast.error(message);
+      }
     } finally {
       setSaving(false);
     }
@@ -437,6 +527,42 @@ export default function AdminPage() {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto space-y-6">
+      {/* ── Recovered Unsaved Draft Banner ── */}
+      {hasLocalDraft && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl border border-amber-500/40 bg-amber-500/10 text-foreground shadow-xs animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-xs">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+                Recovered Unsaved Draft
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Found unpublished changes from your previous session (saved before shutdown or crash).
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button
+              size="sm"
+              onClick={handleRestoreDraft}
+              className="flex-1 sm:flex-none text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
+            >
+              Restore Draft
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleDiscardDraft}
+              className="flex-1 sm:flex-none text-xs cursor-pointer border-amber-500/30 hover:bg-amber-500/10"
+            >
+              Discard
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* ── Main Hero Command Card ── */}
       <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-linear-to-br from-primary/15 via-background to-primary/5 p-6 sm:p-8 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">

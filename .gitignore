@@ -49,6 +49,7 @@ next-env.d.ts
 
 # IDEs and Android builds
 .idea/
+android-icons/
 android/.gradle/
 android/app/build/
 android/build/
