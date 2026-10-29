@@ -36,7 +36,24 @@ npx cap add android
 npx cap sync
 ```
 
-### 4. Open in Android Studio
+### 4. Generate Brand App Icons
+
+Before building the APK, generate the brand launcher icons so the app displays our brand icon on Android phones instead of the default Capacitor logo:
+
+```bash
+bun run generate-android-icons
+```
+
+This generates all Android mipmap densities (`mipmap-mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`, and adaptive round/foreground icons) directly into `android/app/src/main/res/`.
+
+*Alternatively, inside Android Studio:*
+1. In the Android project tree, right-click `android/app/src/main/res` → **New → Image Asset**.
+2. Select **Icon Type: Launcher Icons (Adaptive and Legacy)**.
+3. Under **Foreground Layer**, select **Image** and browse to `public/icon-512.png` (resize slider to ~80% to fit circle safe area).
+4. Under **Background Layer**, select **Color** and set it to `#090d16`.
+5. Click **Next → Finish**, then rebuild your APK.
+
+### 5. Open in Android Studio
 
 ```bash
 npx cap open android
@@ -106,7 +123,7 @@ After running `npx cap add android`, add a notification icon:
 3. Name it `ic_stat_notification`
 4. Use a simple monochrome version of your app icon
 
-> **Note:** Notifications only work in the native Android app � desktop/browser
+> **Note:** Notifications only work in the native Android app � desktop/browser
 > users do not receive push or scheduled notifications.
 
 ### Back Button

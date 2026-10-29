@@ -372,6 +372,9 @@ export const cloudSyncService = {
       const res = await fetch('/api/sync', { credentials: 'include' });
       if (!res.ok) {
         setSyncStatus('error');
+        if (res.status === 401) {
+          return { success: false, action: 'error', message: 'Session expired. Please log out and log back in to sync.' };
+        }
         return { success: false, action: 'error', message: 'Could not connect to cloud database.' };
       }
 

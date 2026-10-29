@@ -69,7 +69,7 @@ export function DccCse25Landing() {
 
           {/* Desktop Action Buttons */}
           <div className="hidden sm:flex items-center gap-2.5">
-            <PwaInstallButton variant="header" />
+            <PwaInstallButton variant="header" showIfInstalled={true} />
             {/* Theme Toggle */}
             <div className="flex items-center gap-0.5 rounded-lg border border-border/60 p-0.5">
               <Button
@@ -122,7 +122,7 @@ export function DccCse25Landing() {
 
           {/* Mobile Actions: PwaInstall + Hamburger Toggle */}
           <div className="flex sm:hidden items-center gap-1.5">
-            <PwaInstallButton variant="header" className="h-8.5 px-2.5 text-[11px]" />
+            <PwaInstallButton variant="header" showIfInstalled={true} className="h-8.5 px-2.5 text-[11px]" />
             <Button
               variant="outline"
               size="icon"
@@ -217,6 +217,7 @@ export function DccCse25Landing() {
 
             {/* Mobile Menu Action CTAs */}
             <div className="space-y-2.5 pt-6 border-t border-border/60">
+              <PwaInstallButton variant="sidebar" showIfInstalled={true} className="w-full justify-center" />
               <Button
                 onClick={() => {
                   setMobileMenuOpen(false);
@@ -273,7 +274,7 @@ export function DccCse25Landing() {
             >
               <Sparkles className="h-4 w-4 shrink-0" /> Continue as Guest (Demo)
             </Button>
-            <PwaInstallButton variant="hero" />
+            <PwaInstallButton variant="hero" showIfInstalled={true} />
             <Link
               href="/login"
               className={cn(

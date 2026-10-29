@@ -69,7 +69,6 @@ import {
   isNativeAppSync,
   requestNativeNotificationPermission,
   checkNativeNotificationPermission,
-  scheduleTestNotification,
 } from '@/lib/utils/capacitor-notifications';
 import type { Settings as SettingsType } from '@/types/database';
 

@@ -18,6 +18,7 @@ import {
   Sparkles,
   BellRing,
   CheckCircle2,
+  Laptop,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -139,35 +140,35 @@ export function PwaInstallButton({
           </DialogHeader>
 
           <div className="space-y-3.5 py-1 text-sm">
-            {/* Primary Option: Android APK Download */}
+            {/* Option 1: Android APK Download (Android Mobile Only) */}
             <div className="rounded-xl border-2 border-emerald-500/40 bg-emerald-500/5 p-4 space-y-3 relative overflow-hidden">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-xs">
-                    <Download className="h-5 w-5" />
+                    <Smartphone className="h-5 w-5" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <p className="font-semibold text-sm">Android App (.APK)</p>
-                      <span className="text-[10px] font-medium bg-emerald-600 text-white px-1.5 py-0.2 rounded-full">
-                        Recommended
+                      <span className="text-[10px] font-medium bg-emerald-600 text-white px-2 py-0.5 rounded-full">
+                        Android Mobile Only
                       </span>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      Direct APK install for Android phones
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Direct APK install for Android smartphones &amp; tablets (not for PC/laptop)
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-1 text-xs text-muted-foreground">
+              <div className="space-y-1.5 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5 text-foreground font-medium text-[11px]">
                   <BellRing className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                  <span>Routine alarms ring even when app is closed!</span>
+                  <span>Class alarms &amp; notifications ring even when app is closed</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px]">
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                  <span>Full offline routine, GPA calculator &amp; syllabus</span>
+                  <span>Full offline routine, GPA calculator &amp; syllabus support</span>
                 </div>
               </div>
 
@@ -176,31 +177,46 @@ export function PwaInstallButton({
                 download="dcc-cse-25.apk"
                 onClick={() => {
                   toast.success('Downloading DCC CSE Android APK...', {
-                    description: 'Check your notification bar or downloads folder to install it.',
+                    description: 'Check your notification bar or downloads folder to install it on your Android phone.',
                   });
                 }}
                 className="w-full flex items-center justify-center gap-2 h-10 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm transition-colors cursor-pointer"
               >
-                <Download className="h-4 w-4" /> Download Android APK (4.1 MB)
+                <Download className="h-4 w-4" /> Download Android APK (4.9 MB)
               </a>
             </div>
 
-            {/* Secondary Option: PWA Add to Home Screen */}
-            <div className="rounded-xl border border-border/80 bg-muted/40 p-3.5 space-y-2.5">
-              <p className="font-semibold text-xs text-foreground flex items-center justify-between">
-                <span>Or Add to Home Screen (Web PWA)</span>
-                <span className="text-[10px] font-normal text-muted-foreground">No APK required</span>
-              </p>
+            {/* Option 2: Add to Home Screen (Desktop, Laptop & iOS) */}
+            <div className="rounded-xl border border-sky-500/40 bg-sky-500/5 p-4 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-600 text-white shadow-xs">
+                    <Laptop className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="font-semibold text-sm">Add to Home Screen (Web PWA)</p>
+                      <span className="text-[10px] font-medium bg-sky-600 text-white px-2 py-0.5 rounded-full">
+                        Desktop, Laptop &amp; iOS
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      For Desktop, Laptop (Windows/Mac/Linux) &amp; iPhone users. No APK download needed!
+                    </p>
+                  </div>
+                </div>
+              </div>
 
               {isIOS ? (
-                <div className="space-y-2 text-xs text-muted-foreground">
+                <div className="space-y-1.5 text-xs text-muted-foreground bg-background/60 p-2.5 rounded-lg border border-border/60">
+                  <p className="font-medium text-foreground text-[11px]">On iPhone / iPad (Safari):</p>
                   <div className="flex items-start gap-2">
                     <span className="font-bold text-foreground">1.</span>
                     <span>Tap the <Share2 className="h-3.5 w-3.5 inline mx-0.5 text-primary" /> Share button in Safari.</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="font-bold text-foreground">2.</span>
-                    <span>Select <PlusSquare className="h-3.5 w-3.5 inline mx-0.5 text-primary" /> <strong>Add to Home Screen</strong>.</span>
+                    <span>Scroll down and select <PlusSquare className="h-3.5 w-3.5 inline mx-0.5 text-primary" /> <strong>Add to Home Screen</strong>.</span>
                   </div>
                 </div>
               ) : hasNativePrompt ? (
@@ -209,15 +225,18 @@ export function PwaInstallButton({
                     variant="outline"
                     size="sm"
                     onClick={handleClick}
-                    className="w-full h-8.5 text-xs font-medium cursor-pointer"
+                    className="w-full h-9 text-xs font-semibold gap-1.5 border-sky-500/40 hover:bg-sky-500/10 text-sky-600 dark:text-sky-400 cursor-pointer"
                   >
-                    <PlusSquare className="h-3.5 w-3.5 mr-1.5" /> Add Web App to Home Screen
+                    <PlusSquare className="h-3.5 w-3.5" /> Install App to Desktop / Laptop
                   </Button>
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  In Chrome or Edge, click <strong>⋮ (Menu)</strong> &rarr; <strong>Install App</strong> or <strong>Add to Home screen</strong>.
-                </p>
+                <div className="text-xs text-muted-foreground bg-background/60 p-2.5 rounded-lg border border-border/60 space-y-1">
+                  <p className="font-medium text-foreground text-[11px]">How to install on Desktop / Laptop:</p>
+                  <p className="leading-relaxed">
+                    In Chrome or Edge browser, look at the right side of the address bar and click the <strong>Install</strong> icon (or click <strong>⋮ Menu &rarr; Install DCC CSE</strong> / <strong>Add to Home screen</strong>).
+                  </p>
+                </div>
               )}
             </div>
           </div>
