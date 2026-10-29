@@ -282,7 +282,6 @@ export const cloudSyncService = {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ data: snapshot }),
-        keepalive: true,
       });
 
       if (!res.ok) {
