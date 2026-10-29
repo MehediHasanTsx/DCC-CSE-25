@@ -6,7 +6,7 @@
     "dev": "node ./node_modules/next/dist/bin/next dev",
     "build": "node ./node_modules/next/dist/bin/next build",
     "start": "node ./node_modules/next/dist/bin/next start",
-    "lint": "eslint",
+    "lint": "node ./node_modules/eslint/bin/eslint.js .",
     "generate-android-icons": "node scripts/generate-android-icons.mjs",
     "test": "node scripts/run-all-tests.mjs"
   },
