@@ -150,65 +150,7 @@ export function InteractiveDotGrid() {
       const py = pointer.y;
       const isPointerActive = pointer.active;
 
-      // 1. Draw single continuous smooth fading path line (cursor movement trail)
-      if (trail.length > 2) {
-        anyMoving = true;
-        ctx.save();
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        let prevX = (trail[0].x + trail[1].x) / 2;
-        let prevY = (trail[0].y + trail[1].y) / 2;
-
-        for (let i = 1; i < trail.length - 1; i++) {
-          const curr = trail[i];
-          const next = trail[i + 1];
-          const nextMidX = (curr.x + next.x) / 2;
-          const nextMidY = (curr.y + next.y) / 2;
-
-          const progress = i / (trail.length - 1);
-          const age = now - curr.time;
-          const life = Math.max(0, 1 - age / MAX_TRAIL_AGE);
-          const alpha = life * Math.pow(progress, 0.8) * (isDark ? 0.8 : 0.65);
-
-          if (alpha > 0.01) {
-            ctx.beginPath();
-            ctx.moveTo(prevX, prevY);
-            ctx.quadraticCurveTo(curr.x, curr.y, nextMidX, nextMidY);
-            ctx.strokeStyle = isDark
-              ? `rgba(168, 85, 247, ${alpha})`
-              : `rgba(99, 102, 241, ${alpha})`;
-            ctx.lineWidth = 1.4 + progress * 3.4; // 1.4px -> 4.8px at cursor head
-            ctx.shadowBlur = 6;
-            ctx.shadowColor = isDark
-              ? `rgba(192, 132, 252, ${alpha * 0.7})`
-              : `rgba(99, 102, 241, ${alpha * 0.6})`;
-            ctx.stroke();
-          }
-
-          prevX = nextMidX;
-          prevY = nextMidY;
-        }
-
-        // Final segment smoothly to head pointer
-        const head = trail[trail.length - 1];
-        ctx.beginPath();
-        ctx.moveTo(prevX, prevY);
-        ctx.lineTo(head.x, head.y);
-        ctx.strokeStyle = isDark
-          ? 'rgba(192, 132, 252, 0.85)'
-          : 'rgba(99, 102, 241, 0.75)';
-        ctx.lineWidth = 4.8;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = isDark
-          ? 'rgba(192, 132, 252, 0.8)'
-          : 'rgba(99, 102, 241, 0.7)';
-        ctx.stroke();
-
-        ctx.restore();
-      }
-
-      // 2. Update and draw dots with repulsion physics
+      // 1. Update and draw background dots FIRST
       for (let i = 0; i < dots.length; i++) {
         const dot = dots[i];
 
@@ -258,7 +200,7 @@ export function InteractiveDotGrid() {
           anyMoving = true;
         }
 
-        // Draw dot
+        // Draw background grid dot
         const currentRadius = isNearCursor
           ? BASE_RADIUS + 0.25
           : BASE_RADIUS;
@@ -270,6 +212,64 @@ export function InteractiveDotGrid() {
         ctx.beginPath();
         ctx.arc(dot.x, dot.y, currentRadius, 0, Math.PI * 2);
         ctx.fill();
+      }
+
+      // 2. Draw smooth continuous pen-write line ON TOP of the dots
+      if (trail.length > 2) {
+        anyMoving = true;
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        let prevX = (trail[0].x + trail[1].x) / 2;
+        let prevY = (trail[0].y + trail[1].y) / 2;
+
+        for (let i = 1; i < trail.length - 1; i++) {
+          const curr = trail[i];
+          const next = trail[i + 1];
+          const nextMidX = (curr.x + next.x) / 2;
+          const nextMidY = (curr.y + next.y) / 2;
+
+          const progress = i / (trail.length - 1);
+          const age = now - curr.time;
+          const life = Math.max(0, 1 - age / MAX_TRAIL_AGE);
+          const alpha = life * Math.pow(progress, 0.75) * (isDark ? 0.9 : 0.8);
+
+          if (alpha > 0.01) {
+            ctx.beginPath();
+            ctx.moveTo(prevX, prevY);
+            ctx.quadraticCurveTo(curr.x, curr.y, nextMidX, nextMidY);
+            ctx.strokeStyle = isDark
+              ? `rgba(168, 85, 247, ${alpha})`
+              : `rgba(99, 102, 241, ${alpha})`;
+            ctx.lineWidth = 1.6 + progress * 3.2; // Smooth pen stroke width
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = isDark
+              ? `rgba(192, 132, 252, ${alpha * 0.7})`
+              : `rgba(99, 102, 241, ${alpha * 0.6})`;
+            ctx.stroke();
+          }
+
+          prevX = nextMidX;
+          prevY = nextMidY;
+        }
+
+        // Final segment smoothly to pen head
+        const head = trail[trail.length - 1];
+        ctx.beginPath();
+        ctx.moveTo(prevX, prevY);
+        ctx.lineTo(head.x, head.y);
+        ctx.strokeStyle = isDark
+          ? 'rgba(192, 132, 252, 0.95)'
+          : 'rgba(99, 102, 241, 0.85)';
+        ctx.lineWidth = 4.8;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = isDark
+          ? 'rgba(192, 132, 252, 0.85)'
+          : 'rgba(99, 102, 241, 0.75)';
+        ctx.stroke();
+
+        ctx.restore();
       }
 
       // If pointer is still active, trail is fading, or dots are settling: keep loop alive

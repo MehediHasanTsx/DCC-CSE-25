@@ -249,15 +249,12 @@ export function DccCse25Landing() {
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 sm:px-4 py-1.5 text-xs font-semibold text-blue-700 dark:text-violet-300 mb-5 sm:mb-6 animate-fade-in">
             <span className="flex h-1.5 w-1.5 rounded-full bg-primary" />
-            Dhaka City College · Computer Science &amp; Engineering (Batch 25)
+            Dhaka City College · CSE (Batch 25)
           </div>
 
           {/* Main H1 */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.12] mb-4">
-            DCC CSE 25
-            <span className="block text-xl sm:text-3xl lg:text-4xl font-semibold text-muted-foreground mt-2">
-              Student Academic Dashboard | Dhaka City College
-            </span>
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.15] mb-5">
+            Student Academic Dashboard
           </h1>
 
           {/* Hero Description */}
