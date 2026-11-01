@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useProfile } from '@/lib/hooks/useProfile';
 import { useAttendance } from '@/lib/hooks/useAttendance';
@@ -55,13 +56,23 @@ import { useAuth } from '@/components/providers/auth-provider';
 import { DccCse25Landing } from '@/components/landing/public-landing';
 import { DEFAULT_LAB_GROUPS } from '@/lib/constants';
 import { toast } from 'sonner';
+import { isNativeAppSync } from '@/lib/utils/capacitor-notifications';
+import { isStandaloneApp } from '@/lib/utils/sound';
 import type { Assignment, ExamRoutineItem, RoutineSlot, Subject, DayOfWeek, AttendanceStatus, RoutineActivity, LabGroup } from '@/types/database';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { isAuthenticated, isGuest, isLoading } = useAuth();
+  const isApp = typeof window !== 'undefined' && (isNativeAppSync() || isStandaloneApp());
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && !isGuest && isApp) {
+      router.replace('/login');
+    }
+  }, [isLoading, isAuthenticated, isGuest, isApp, router]);
 
   // If still verifying auth state, show clean loading placeholder rather than flashing landing page
-  if (isLoading && !isAuthenticated && !isGuest) {
+  if ((isLoading && !isAuthenticated && !isGuest) || (!isAuthenticated && !isGuest && isApp)) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">

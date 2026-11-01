@@ -127,7 +127,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex min-h-[100dvh] flex-col justify-center items-center py-8 overflow-y-auto bg-background p-4">
       <div className="w-full max-w-sm">
         {/* Header */}
         <div className="mb-8 text-center">
