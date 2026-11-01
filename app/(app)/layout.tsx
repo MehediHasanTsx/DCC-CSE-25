@@ -8,6 +8,8 @@ import { profileService } from '@/lib/services/profile.service';
 import { AppShell } from '@/components/layout/app-shell';
 import { RoutineNotifier } from '@/components/shared/routine-notifier';
 import { NotificationPermissionPrompt } from '@/components/shared/notification-permission-prompt';
+import { isNativeAppSync } from '@/lib/utils/capacitor-notifications';
+import { isStandaloneApp } from '@/lib/utils/sound';
 
 const emptySubscribe = () => () => {};
 function useIsMounted() {
@@ -55,7 +57,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     if (!isMounted || authLoading) return;
 
     if (!canAccess) {
-      if (!isPublicHome) {
+      if (!isPublicHome || isNativeAppSync() || isStandaloneApp()) {
         router.replace('/login');
       }
       return;
@@ -80,7 +82,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [router, authLoading, canAccess, isGuest, isMounted, dbReady, isPublicHome, pathname]);
 
   // During SSR / hydration or verified unauthenticated public homepage, render children directly
-  if (!isMounted || (isPublicHome && !canAccess && !authLoading)) {
+  if (!isMounted || (isPublicHome && !canAccess && !authLoading && !isNativeAppSync() && !isStandaloneApp())) {
     return <>{children}</>;
   }
 
